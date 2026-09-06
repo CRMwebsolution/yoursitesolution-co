@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#0b1624"/>
-  <path d="M13 14h11l8 13 8-13h11L37 36v14H27V36L13 14Z" fill="#f5f1e8"/>
-  <path d="M40 39h11v11H40z" fill="#ff5a1f"/>
+  <rect width="64" height="64" rx="12" fill="#1F4A3A"/>
+  <text
+    x="32"
+    y="42"
+    text-anchor="middle"
+    fill="#FAFAF7"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="26"
+    font-weight="800"
+    letter-spacing="-1.5"
+  >YS</text>
 </svg>
