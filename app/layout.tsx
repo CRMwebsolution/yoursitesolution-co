@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+import "./brand.css";
 
 const outfit = Outfit({
   subsets: ["latin"],
