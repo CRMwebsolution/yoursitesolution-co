@@ -2,7 +2,18 @@ import type { MetadataRoute } from "next";
 import { publishedProjects } from "@/config/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/websites", "/automation", "/pricing", "/contact", "/free-demo"];
+  const routes = [
+    "",
+    "/websites",
+    "/automation",
+    "/tools",
+    "/tools/website-check",
+    "/tools/review-text",
+    "/tools/time-check",
+    "/pricing",
+    "/contact",
+    "/free-demo",
+  ];
   if (publishedProjects.length) routes.push("/work");
 
   return routes.map((route) => ({
