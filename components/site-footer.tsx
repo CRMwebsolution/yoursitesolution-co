@@ -26,6 +26,7 @@ export function SiteFooter() {
           <p>Services</p>
           <Link href="/websites">Custom websites</Link>
           <Link href="/automation">Business automation</Link>
+          <Link href="/tools">Free tools</Link>
           <Link href="/free-demo">Free website demo</Link>
         </div>
         <div className="footer-column">
