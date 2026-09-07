@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const result = cached ?? (await runWebsiteCheck(url));
   if (!cached) setCached(cacheKey, result, 6 * 60 * 60 * 1000);
 
-  void sendToolsEvent(
+  await sendToolsEvent(
     {
       event: "tool_run",
       tool: "website-check",
