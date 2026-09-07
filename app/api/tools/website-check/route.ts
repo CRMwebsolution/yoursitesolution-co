@@ -8,6 +8,7 @@ import {
 } from "@/lib/rate-limit";
 import {
   normalizePublicUrl,
+  normalizeStrategy,
   runWebsiteCheck,
   summarizeCheck,
   type WebsiteCheckResult,
@@ -37,6 +38,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const strategy = normalizeStrategy(body.strategy);
+
   const ip = clientKey(request);
   if (!allowRequest(`website-check:${ip}`, 6, 60 * 60 * 1000)) {
     return NextResponse.json(
@@ -45,9 +48,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const cacheKey = `website-check:${url}`;
+  const cacheKey = `website-check:${strategy}:${url}`;
   const cached = getCached<WebsiteCheckResult>(cacheKey);
-  const result = cached ?? (await runWebsiteCheck(url));
+  const result = cached ?? (await runWebsiteCheck(url, strategy));
   if (!cached) setCached(cacheKey, result, 6 * 60 * 60 * 1000);
 
   await sendToolsEvent(
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
       event: "tool_run",
       tool: "website-check",
       current_website: result.url,
-      tool_input: { url: result.url },
+      tool_input: { url: result.url, strategy: result.strategy },
       tool_result: summarizeCheck(result),
     },
     request,
