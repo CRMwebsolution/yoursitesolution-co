@@ -1,4 +1,5 @@
 export type ScoreBand = "good" | "okay" | "poor" | "unknown";
+export type CheckStrategy = "mobile" | "desktop";
 
 export type CategoryScore = {
   id: string;
@@ -16,15 +17,13 @@ export type ReachabilityItem = {
 
 export type WebsiteCheckResult = {
   url: string;
+  strategy: CheckStrategy;
   fetched: boolean;
   https: boolean;
   title: string | null;
   metaDescription: string | null;
   h1: string | null;
-  scores: {
-    mobile: CategoryScore[];
-    desktop: CategoryScore[];
-  };
+  scores: CategoryScore[];
   vitals: {
     lcp: string | null;
     cls: string | null;
@@ -34,6 +33,10 @@ export type WebsiteCheckResult = {
   notes: string[];
   psiAvailable: boolean;
 };
+
+export function normalizeStrategy(value: unknown): CheckStrategy {
+  return value === "desktop" ? "desktop" : "mobile";
+}
 
 const PRIVATE_HOST =
   /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.0\.0\.0|::1|172\.(1[6-9]|2\d|3[0-1])\.)/i;
@@ -72,7 +75,16 @@ function firstMatch(html: string, pattern: RegExp) {
 function analyzeHtml(
   url: string,
   html: string,
-): Omit<WebsiteCheckResult, "scores" | "vitals" | "notes" | "psiAvailable"> {
+): Pick<
+  WebsiteCheckResult,
+  | "url"
+  | "fetched"
+  | "https"
+  | "title"
+  | "metaDescription"
+  | "h1"
+  | "reachability"
+> {
   const title = firstMatch(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
   const metaDescription =
     firstMatch(
@@ -162,7 +174,7 @@ function analyzeHtml(
 type PsiCategory = { score?: number };
 type PsiAudit = { displayValue?: string; numericValue?: number };
 
-async function runPsi(url: string, strategy: "mobile" | "desktop") {
+async function runPsi(url: string, strategy: CheckStrategy) {
   const endpoint = new URL(
     "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
   );
@@ -213,10 +225,12 @@ function readVital(audit?: PsiAudit) {
   return audit?.displayValue || null;
 }
 
-export async function runWebsiteCheck(url: string): Promise<WebsiteCheckResult> {
-  const [mobilePsi, desktopPsi, page] = await Promise.all([
-    runPsi(url, "mobile").catch(() => null),
-    runPsi(url, "desktop").catch(() => null),
+export async function runWebsiteCheck(
+  url: string,
+  strategy: CheckStrategy,
+): Promise<WebsiteCheckResult> {
+  const [psi, page] = await Promise.all([
+    runPsi(url, strategy).catch(() => null),
     fetch(url, {
       cache: "no-store",
       redirect: "follow",
@@ -250,30 +264,36 @@ export async function runWebsiteCheck(url: string): Promise<WebsiteCheckResult> 
         ],
       };
 
-  const mobile = readCategories(mobilePsi);
-  const desktop = readCategories(desktopPsi);
-  const audits = mobilePsi?.lighthouseResult?.audits || {};
-  const psiAvailable = Boolean(mobilePsi || desktopPsi);
-  const mobileSpeed = mobile.find((item) => item.id === "performance")?.score;
+  const scores = readCategories(psi);
+  const audits = psi?.lighthouseResult?.audits || {};
+  const psiAvailable = Boolean(psi);
+  const speed = scores.find((item) => item.id === "performance")?.score;
+  const device = strategy === "desktop" ? "desktop" : "a phone";
   const notes: string[] = [];
 
-  if (typeof mobileSpeed === "number") {
-    if (mobileSpeed >= 90) {
+  if (typeof speed === "number") {
+    if (speed >= 90) {
       notes.push(
-        "Mobile speed looks solid. That is the version most customers actually use.",
+        strategy === "mobile"
+          ? "Mobile speed looks solid. That is the version most customers actually use."
+          : "Desktop speed looks solid on this run.",
       );
-    } else if (mobileSpeed >= 50) {
+    } else if (speed >= 50) {
       notes.push(
-        "The site works, but phones are waiting longer than they should. People often leave before the page is useful.",
+        strategy === "mobile"
+          ? "The site works, but phones are waiting longer than they should. People often leave before the page is useful."
+          : "The desktop version works, but it is waiting longer than it should.",
       );
     } else {
       notes.push(
-        "On a phone, this page is slow enough that a lot of people will bounce. That usually matters more than how it looks on a desktop.",
+        strategy === "mobile"
+          ? "On a phone, this page is slow enough that a lot of people will bounce. That usually matters more than how it looks on a desktop."
+          : "On desktop, this page is slow enough that people may leave before it is useful.",
       );
     }
   } else if (!psiAvailable) {
     notes.push(
-      "Google’s speed test was not available just now. The homepage checks below still ran.",
+      `Google’s ${device} speed test was not available just now. The homepage checks below still ran.`,
     );
   }
 
@@ -305,7 +325,8 @@ export async function runWebsiteCheck(url: string): Promise<WebsiteCheckResult> 
 
   return {
     ...base,
-    scores: { mobile, desktop },
+    strategy,
+    scores,
     vitals: {
       lcp: readVital(audits["largest-contentful-paint"]),
       cls: readVital(audits["cumulative-layout-shift"]),
@@ -317,16 +338,16 @@ export async function runWebsiteCheck(url: string): Promise<WebsiteCheckResult> 
 }
 
 export function summarizeCheck(result: WebsiteCheckResult) {
-  const mobileSpeed =
-    result.scores.mobile.find((item) => item.id === "performance")?.score ??
-    null;
+  const speed =
+    result.scores.find((item) => item.id === "performance")?.score ?? null;
   const missing = result.reachability
     .filter((item) => !item.ok)
     .map((item) => item.label);
 
   return {
     url: result.url,
-    mobile_speed: mobileSpeed,
+    strategy: result.strategy,
+    speed,
     https: result.https,
     title: result.title,
     missing,
