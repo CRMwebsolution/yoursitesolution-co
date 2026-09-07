@@ -83,10 +83,10 @@ function analyzeHtml(
       html,
       /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["'][^>]*>/i,
     );
-  const h1 = firstMatch(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.replace(
-    /<[^>]+>/g,
-    "",
-  );
+  const extractedHeading = firstMatch(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/i);
+  const h1 = extractedHeading
+    ? extractedHeading.replace(/<[^>]+>/g, "").trim() || null
+    : null;
   const hasTel = /href=["']tel:/i.test(html);
   const hasMailto = /href=["']mailto:/i.test(html);
   const hasForm = /<form\b/i.test(html);
