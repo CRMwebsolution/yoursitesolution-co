@@ -5,7 +5,7 @@ import { WebsiteCheckTool } from "./website-check-tool";
 export const metadata: Metadata = {
   title: "Website check",
   description:
-    "Free website check for small businesses. See mobile speed scores and whether customers can call, write, or find hours from the homepage.",
+    "Free website check for small businesses. Choose mobile or desktop, then see speed scores and whether customers can reach you from the homepage.",
 };
 
 export default function WebsiteCheckPage() {
@@ -18,7 +18,7 @@ export default function WebsiteCheckPage() {
             Is the website actually <em>usable?</em>
           </>
         }
-        description="Paste a URL. I run Google’s speed test and look at the homepage for a phone number, a form, hours, and the other basics customers need."
+        description="Paste a URL and pick mobile or desktop. I run Google’s speed test for that version and look at the homepage for a phone number, a form, hours, and the other basics customers need."
       />
       <section className="section">
         <div className="shell tool-page">
