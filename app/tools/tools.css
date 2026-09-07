@@ -1,0 +1,267 @@
+.tool-index-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--line);
+}
+
+.tool-index-grid .service-panel {
+  min-height: 360px;
+}
+
+.tool-index-grid .service-panel + .service-panel {
+  border-left: 1px solid var(--line);
+}
+
+.tool-page {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.tool-stage {
+  display: grid;
+  gap: 2rem;
+}
+
+.tool-form {
+  max-width: 920px;
+}
+
+.tool-results h2,
+.tool-followup h2 {
+  margin: 0.35rem 0 1.2rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 950;
+  letter-spacing: -0.05em;
+}
+
+.score-boards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.score-board {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 1.1rem;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+}
+
+.score-cell {
+  display: grid;
+  gap: 0.2rem;
+  border: 1px solid var(--line);
+  background: var(--paper-light);
+  padding: 0.85rem 0.9rem;
+}
+
+.score-cell span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.score-cell strong {
+  font-size: 2rem;
+  letter-spacing: -0.04em;
+}
+
+.band-good strong {
+  color: #1e9a63;
+}
+
+.band-okay strong {
+  color: #b45309;
+}
+
+.band-poor strong {
+  color: #b42318;
+}
+
+.vital-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0 0 1.6rem;
+  border: 1px solid var(--line);
+}
+
+.vital-row div {
+  padding: 0.9rem 1rem;
+}
+
+.vital-row div + div {
+  border-left: 1px solid var(--line);
+}
+
+.vital-row dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vital-row dd {
+  margin: 0.3rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.note-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0 0 1.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.note-list li {
+  border-left: 4px solid var(--orange);
+  background: var(--paper);
+  padding: 0.9rem 1rem;
+}
+
+.reach-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.reach-grid article {
+  border: 1px solid var(--line);
+  background: var(--paper-light);
+  padding: 1rem 1.05rem;
+}
+
+.reach-grid strong {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reach-ok strong {
+  color: #1e9a63;
+}
+
+.reach-miss strong {
+  color: #b42318;
+}
+
+.reach-grid h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.reach-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.tool-disclaimer {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.review-preview {
+  border: 1px solid var(--line);
+  background: var(--paper-light);
+  padding: 1.1rem 1.2rem;
+}
+
+.review-preview p:last-child {
+  margin: 0.4rem 0 0;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.question-list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.question-list li {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.question-list span {
+  color: #9aaab5;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.question-list p {
+  margin: 0 0 0.7rem;
+}
+
+.yes-no {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.yes-no button {
+  border: 1px solid var(--line);
+  background: var(--paper-light);
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+.yes-no button.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+.hours-callout {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+}
+
+.tool-followup-success {
+  min-height: auto;
+}
+
+@media (max-width: 980px) {
+  .tool-index-grid,
+  .score-boards,
+  .reach-grid,
+  .vital-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-index-grid .service-panel + .service-panel {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .vital-row div + div {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .score-grid {
+    grid-template-columns: 1fr;
+  }
+}
