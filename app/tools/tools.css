@@ -26,6 +26,30 @@
   max-width: 920px;
 }
 
+.device-choice {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.device-choice legend {
+  margin-bottom: 0.45rem;
+  color: #334250;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.device-choice p {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
 .tool-results h2,
 .tool-followup h2 {
   margin: 0.35rem 0 1.2rem;
@@ -39,6 +63,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 1.2rem;
   margin-bottom: 1.4rem;
+}
+
+.score-boards-single {
+  grid-template-columns: 1fr;
+  max-width: 640px;
 }
 
 .score-board {
