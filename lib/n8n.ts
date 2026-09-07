@@ -27,6 +27,14 @@ export async function sendToolsEvent(
       }),
       cache: "no-store",
     });
+
+    if (!forwarded.ok) {
+      const detail = await forwarded.text().catch(() => "");
+      console.error(
+        `Tools webhook ${forwarded.status}: ${detail.slice(0, 400)}`,
+      );
+    }
+
     return forwarded.ok;
   } catch (error) {
     console.error("Tools webhook failed.", error);
