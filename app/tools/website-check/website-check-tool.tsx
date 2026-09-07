@@ -3,10 +3,11 @@
 import { useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import { ToolFollowupForm } from "@/components/tool-followup-form";
-import type { WebsiteCheckResult } from "@/lib/website-check";
+import type { CheckStrategy, WebsiteCheckResult } from "@/lib/website-check";
 
 export function WebsiteCheckTool() {
   const [url, setUrl] = useState("");
+  const [strategy, setStrategy] = useState<CheckStrategy>("mobile");
   const [status, setStatus] = useState<"idle" | "running" | "done" | "error">(
     "idle",
   );
@@ -25,6 +26,7 @@ export function WebsiteCheckTool() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url,
+          strategy,
           company_site: event.currentTarget.company_site.value,
         }),
       });
@@ -71,12 +73,35 @@ export function WebsiteCheckTool() {
             required
           />
         </label>
+        <fieldset className="device-choice">
+          <legend>Check this site as</legend>
+          <div className="yes-no">
+            <button
+              type="button"
+              className={strategy === "mobile" ? "is-on" : ""}
+              onClick={() => setStrategy("mobile")}
+            >
+              Mobile
+            </button>
+            <button
+              type="button"
+              className={strategy === "desktop" ? "is-on" : ""}
+              onClick={() => setStrategy("desktop")}
+            >
+              Desktop
+            </button>
+          </div>
+          <p>
+            Most customers use a phone. Start there unless you have a reason to
+            check the desktop version.
+          </p>
+        </fieldset>
         <div className="form-submit-row">
           <button className="button" type="submit" disabled={status === "running"}>
             {status === "running" ? "Checking…" : "Run the check"}
             <ArrowRight aria-hidden="true" />
           </button>
-          <p>Takes about 15–30 seconds. Results show up on this page.</p>
+          <p>Takes about 15 seconds. Results show up on this page.</p>
         </div>
         {error ? (
           <p className="form-error" role="alert">
@@ -87,12 +112,16 @@ export function WebsiteCheckTool() {
 
       {result ? (
         <div className="tool-results">
-          <p className="eyebrow">Results for</p>
+          <p className="eyebrow">
+            {result.strategy === "desktop" ? "Desktop" : "Mobile"} results for
+          </p>
           <h2>{result.url.replace(/^https?:\/\//, "")}</h2>
 
-          <div className="score-boards">
-            <ScoreBoard label="Mobile" scores={result.scores.mobile} />
-            <ScoreBoard label="Desktop" scores={result.scores.desktop} />
+          <div className="score-boards score-boards-single">
+            <ScoreBoard
+              label={result.strategy === "desktop" ? "Desktop" : "Mobile"}
+              scores={result.scores}
+            />
           </div>
 
           {result.vitals.lcp || result.vitals.cls || result.vitals.inp ? (
@@ -141,9 +170,10 @@ export function WebsiteCheckTool() {
             heading="If you want this rebuilt so customers can actually use it, tell me."
             context={{
               url: result.url,
-              mobile_speed:
-                result.scores.mobile.find((item) => item.id === "performance")
-                  ?.score ?? null,
+              strategy: result.strategy,
+              speed:
+                result.scores.find((item) => item.id === "performance")?.score ??
+                null,
               missing: result.reachability
                 .filter((item) => !item.ok)
                 .map((item) => item.label),
@@ -160,7 +190,7 @@ function ScoreBoard({
   scores,
 }: {
   label: string;
-  scores: WebsiteCheckResult["scores"]["mobile"];
+  scores: WebsiteCheckResult["scores"];
 }) {
   return (
     <section className="score-board">
