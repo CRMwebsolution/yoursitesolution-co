@@ -3,7 +3,22 @@
 import { useState, type FormEvent } from "react";
 import { ArrowRight } from "lucide-react";
 import { ToolFollowupForm } from "@/components/tool-followup-form";
-import type { CheckStrategy, WebsiteCheckResult } from "@/lib/website-check";
+import type { CheckStrategy, WebsiteCheckReport } from "@/lib/website-check";
+
+function displayHost(url: string) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url.replace(/^https?:\/\//, "");
+  }
+}
+
+function band(score: number | null) {
+  if (score === null) return "unknown";
+  if (score >= 90) return "good";
+  if (score >= 50) return "okay";
+  return "poor";
+}
 
 export function WebsiteCheckTool() {
   const [url, setUrl] = useState("");
@@ -12,13 +27,13 @@ export function WebsiteCheckTool() {
     "idle",
   );
   const [error, setError] = useState("");
-  const [result, setResult] = useState<WebsiteCheckResult | null>(null);
+  const [report, setReport] = useState<WebsiteCheckReport | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("running");
     setError("");
-    setResult(null);
+    setReport(null);
 
     try {
       const response = await fetch("/api/tools/website-check", {
@@ -30,27 +45,16 @@ export function WebsiteCheckTool() {
           company_site: event.currentTarget.company_site.value,
         }),
       });
-      const text = await response.text();
-      let data: { error?: string; result?: WebsiteCheckResult } = {};
-      if (text) {
-        try {
-          data = JSON.parse(text) as {
-            error?: string;
-            result?: WebsiteCheckResult;
-          };
-        } catch {
-          throw new Error(
-            "The speed test took too long to come back. Run it once more.",
-          );
-        }
-      }
-      if (!response.ok || !data.result) {
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        report?: WebsiteCheckReport;
+      };
+      if (!response.ok || !data.report) {
         throw new Error(
-          data.error ||
-            "The speed test took too long to come back. Run it once more.",
+          data.error || "The website could not be analyzed right now.",
         );
       }
-      setResult(data.result);
+      setReport(data.report);
       setStatus("done");
     } catch (caught) {
       setError(
@@ -59,6 +63,23 @@ export function WebsiteCheckTool() {
       setStatus("error");
     }
   }
+
+  const scores = report
+    ? [
+        { id: "performance", label: "Speed", score: report.scores.performance },
+        {
+          id: "accessibility",
+          label: "Accessibility",
+          score: report.scores.accessibility,
+        },
+        {
+          id: "best-practices",
+          label: "Best practices",
+          score: report.scores.bestPractices,
+        },
+        { id: "seo", label: "SEO basics", score: report.scores.seo },
+      ]
+    : [];
 
   return (
     <div className="tool-stage">
@@ -114,8 +135,14 @@ export function WebsiteCheckTool() {
             {status === "running" ? "Checking…" : "Run the check"}
             <ArrowRight aria-hidden="true" />
           </button>
-          <p>Takes about 20–40 seconds. Stay on this page until scores show.</p>
+          <p>Takes about 20–50 seconds. Stay on this page until scores show.</p>
         </div>
+        {status === "running" ? (
+          <p className="tool-disclaimer" role="status">
+            Checking the site now. This uses the same PageSpeed test as the
+            Southern Automate checker.
+          </p>
+        ) : null}
         {error ? (
           <p className="form-error" role="alert">
             {error}
@@ -123,143 +150,89 @@ export function WebsiteCheckTool() {
         ) : null}
       </form>
 
-      {result ? (
+      {report ? (
         <div className="tool-results">
           <p className="eyebrow">
-            {result.strategy === "desktop" ? "Desktop" : "Mobile"} results for
+            {report.strategy === "desktop" ? "Desktop" : "Mobile"} results for
           </p>
-          <h2>{result.url.replace(/^https?:\/\//, "")}</h2>
+          <h2>{displayHost(report.url)}</h2>
 
           <div className="score-boards score-boards-single">
-            <ScoreBoard
-              label={result.strategy === "desktop" ? "Desktop" : "Mobile"}
-              scores={result.scores}
-            />
+            <section className="score-board">
+              <p className="eyebrow">
+                {report.strategy === "desktop" ? "Desktop" : "Mobile"}
+              </p>
+              <div className="score-grid">
+                {scores.map((score) => (
+                  <div
+                    key={score.id}
+                    className={`score-cell band-${band(score.score)}`}
+                  >
+                    <span>{score.label}</span>
+                    <strong>{score.score ?? "—"}</strong>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
 
-          {result.vitals.lcp || result.vitals.cls || result.vitals.inp ? (
-            <dl className="vital-row">
-              <div>
-                <dt>Largest content</dt>
-                <dd>{result.vitals.lcp || "—"}</dd>
-              </div>
-              <div>
-                <dt>Layout shift</dt>
-                <dd>{result.vitals.cls || "—"}</dd>
-              </div>
-              <div>
-                <dt>Blocking time</dt>
-                <dd>{result.vitals.inp || "—"}</dd>
-              </div>
-            </dl>
-          ) : null}
-
-          {result.metrics.length ? (
+          {report.metrics.length ? (
             <section className="audit-block">
               <p className="eyebrow">Key metrics</p>
               <ul>
-                {result.metrics.map((item) => (
+                {report.metrics.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
             </section>
           ) : null}
 
-          <ul className="note-list">
-            {result.notes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-          </ul>
-
-          {result.issues.length ? (
+          {report.fixFirst.length ? (
             <section className="audit-block">
-              <p className="eyebrow">Biggest problems</p>
+              <p className="eyebrow">Fix these first</p>
               <ul>
-                {result.issues.map((item) => (
-                  <li key={item}>{item}</li>
+                {report.fixFirst.map((item) => (
+                  <li key={item.title}>{item.title}</li>
                 ))}
               </ul>
             </section>
           ) : null}
 
-          {result.opportunities.length ? (
+          {report.worthImproving.length ? (
             <section className="audit-block">
               <p className="eyebrow">What to fix next</p>
               <ul>
-                {result.opportunities.map((item) => (
-                  <li key={item}>{item}</li>
+                {report.worthImproving.map((item) => (
+                  <li key={item.title}>{item.title}</li>
                 ))}
               </ul>
             </section>
           ) : null}
 
-          {result.goodThings.length ? (
+          {report.doingWell.length ? (
             <section className="audit-block audit-good">
               <p className="eyebrow">Already good</p>
               <ul>
-                {result.goodThings.map((item) => (
-                  <li key={item}>{item}</li>
+                {report.doingWell.map((item) => (
+                  <li key={item.title}>{item.title}</li>
                 ))}
               </ul>
             </section>
           ) : null}
 
-          <div className="reach-grid">
-            {result.reachability.map((item) => (
-              <article
-                key={item.id}
-                className={item.ok ? "reach-ok" : "reach-miss"}
-              >
-                <strong>{item.ok ? "Yes" : "No"}</strong>
-                <h3>{item.label}</h3>
-                <p>{item.detail}</p>
-              </article>
-            ))}
-          </div>
-
-          <p className="tool-disclaimer">
-            Speed scores come from Google’s PageSpeed / Lighthouse test. They
-            move around a bit from run to run. This is not a ranking promise.
-          </p>
+          <p className="tool-disclaimer">{report.disclaimer}</p>
 
           <ToolFollowupForm
             tool="website-check"
             heading="If you want this rebuilt so customers can actually use it, tell me."
             context={{
-              url: result.url,
-              strategy: result.strategy,
-              speed:
-                result.scores.find((item) => item.id === "performance")?.score ??
-                null,
-              missing: result.reachability
-                .filter((item) => !item.ok)
-                .map((item) => item.label),
+              url: report.url,
+              strategy: report.strategy,
+              speed: report.scores.performance,
             }}
           />
         </div>
       ) : null}
     </div>
-  );
-}
-
-function ScoreBoard({
-  label,
-  scores,
-}: {
-  label: string;
-  scores: WebsiteCheckResult["scores"];
-}) {
-  return (
-    <section className="score-board">
-      <p className="eyebrow">{label}</p>
-      <div className="score-grid">
-        {scores.map((score) => (
-          <div key={score.id} className={`score-cell band-${score.band}`}>
-            <span>{score.label}</span>
-            <strong>{score.score ?? "—"}</strong>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }
