@@ -30,12 +30,25 @@ export function WebsiteCheckTool() {
           company_site: event.currentTarget.company_site.value,
         }),
       });
-      const data = (await response.json()) as {
-        error?: string;
-        result?: WebsiteCheckResult;
-      };
+      const text = await response.text();
+      let data: { error?: string; result?: WebsiteCheckResult } = {};
+      if (text) {
+        try {
+          data = JSON.parse(text) as {
+            error?: string;
+            result?: WebsiteCheckResult;
+          };
+        } catch {
+          throw new Error(
+            "The speed test took too long to come back. Run it once more.",
+          );
+        }
+      }
       if (!response.ok || !data.result) {
-        throw new Error(data.error || "The check did not finish.");
+        throw new Error(
+          data.error ||
+            "The speed test took too long to come back. Run it once more.",
+        );
       }
       setResult(data.result);
       setStatus("done");
@@ -101,7 +114,7 @@ export function WebsiteCheckTool() {
             {status === "running" ? "Checking…" : "Run the check"}
             <ArrowRight aria-hidden="true" />
           </button>
-          <p>Takes about 20–40 seconds. Results show up on this page.</p>
+          <p>Takes about 20–40 seconds. Stay on this page until scores show.</p>
         </div>
         {error ? (
           <p className="form-error" role="alert">
