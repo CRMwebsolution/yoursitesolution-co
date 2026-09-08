@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { sendToolsEvent } from "@/lib/n8n";
 import {
   allowRequest,
   clientKey,
@@ -10,7 +9,6 @@ import {
   normalizePublicUrl,
   normalizeStrategy,
   runWebsiteCheck,
-  summarizeCheck,
   type WebsiteCheckResult,
 } from "@/lib/website-check";
 
@@ -50,19 +48,10 @@ export async function POST(request: Request) {
 
   const cacheKey = `website-check:${strategy}:${url}`;
   const cached = getCached<WebsiteCheckResult>(cacheKey);
-  const result = cached ?? (await runWebsiteCheck(url, strategy));
-  if (!cached) setCached(cacheKey, result, 6 * 60 * 60 * 1000);
-
-  await sendToolsEvent(
-    {
-      event: "tool_run",
-      tool: "website-check",
-      current_website: result.url,
-      tool_input: { url: result.url, strategy: result.strategy },
-      tool_result: summarizeCheck(result),
-    },
-    request,
-  );
+  const result = cached ?? (await runWebsiteCheck(url, strategy, request));
+  if (!cached && result.psiAvailable) {
+    setCached(cacheKey, result, 6 * 60 * 60 * 1000);
+  }
 
   return NextResponse.json({ ok: true, result });
 }
