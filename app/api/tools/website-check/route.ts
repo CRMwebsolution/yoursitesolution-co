@@ -31,27 +31,24 @@ export async function POST(request: Request) {
     );
   }
 
-  const webhook =
-    process.env.N8N_WEBSITE_AUDIT_WEBHOOK_URL?.trim() ||
-    process.env.N8N_TOOLS_WEBHOOK?.trim() ||
-    "https://n8n.southernautomate.com/webhook/59c03a5c-8a65-4e97-a760-975fc5eda64b";
+  const webhook = process.env.N8N_TOOLS_WEBHOOK?.trim();
+  if (!webhook) {
+    return NextResponse.json(
+      { error: "The website checker is being connected. Please try again later." },
+      { status: 503 },
+    );
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 55_000);
 
   try {
-    const headers: Record<string, string> = {
-      "content-type": "application/json",
-      accept: "application/json",
-    };
-    const token =
-      process.env.N8N_WEBSITE_AUDIT_TOKEN?.trim() ||
-      process.env.N8N_TOOLS_TOKEN?.trim();
-    if (token) headers.authorization = `Bearer ${token}`;
-
     const response = await fetch(webhook, {
       method: "POST",
-      headers,
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
       body: JSON.stringify({
         url,
         strategy,
