@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/tools/website-check/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
