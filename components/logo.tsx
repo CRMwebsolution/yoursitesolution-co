@@ -6,10 +6,7 @@ export function Logo() {
       <span className="brand-mark" aria-hidden="true">
         YS
       </span>
-      <span className="brand-name">
-        <strong>Your Site</strong>
-        <span>Solution</span>
-      </span>
+      <span className="brand-name">Your Site Solution</span>
     </Link>
   );
 }
