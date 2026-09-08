@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
 import {
-  allowRequest,
-  clientKey,
-  getCached,
-  setCached,
-} from "@/lib/rate-limit";
-import {
   normalizePublicUrl,
   normalizeStrategy,
-  runWebsiteCheck,
-  type WebsiteCheckResult,
+  normalizeWebhookResponse,
 } from "@/lib/website-check";
 
 export const runtime = "nodejs";
@@ -17,55 +10,89 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  const body = (await request.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null;
+  if (!body) {
+    return NextResponse.json(
+      { error: "Enter a valid website address and try again." },
+      { status: 400 },
+    );
+  }
+  if (body.company_site) return NextResponse.json({ ok: true });
+
+  const url = normalizePublicUrl(body.url);
+  const strategy = normalizeStrategy(body.strategy);
+  if (!url) {
+    return NextResponse.json(
+      { error: "Enter a public website address, such as example.com." },
+      { status: 400 },
+    );
+  }
+
+  const webhook =
+    process.env.N8N_WEBSITE_AUDIT_WEBHOOK_URL?.trim() ||
+    process.env.N8N_TOOLS_WEBHOOK?.trim() ||
+    "https://n8n.southernautomate.com/webhook/59c03a5c-8a65-4e97-a760-975fc5eda64b";
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 55_000);
+
   try {
-    let body: Record<string, unknown>;
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      accept: "application/json",
+    };
+    const token =
+      process.env.N8N_WEBSITE_AUDIT_TOKEN?.trim() ||
+      process.env.N8N_TOOLS_TOKEN?.trim();
+    if (token) headers.authorization = `Bearer ${token}`;
 
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
-    }
+    const response = await fetch(webhook, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        url,
+        strategy,
+        source: "yoursitesolution.com",
+        channel: "tools",
+        form_type: "tools",
+        event: "tool_run",
+        tool: "website-check",
+      }),
+      cache: "no-store",
+      signal: controller.signal,
+    });
 
-    if (body.company_site) {
-      return NextResponse.json({ ok: true });
-    }
-
-    const url = typeof body.url === "string" ? normalizePublicUrl(body.url) : null;
-    if (!url) {
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result) {
       return NextResponse.json(
-        { error: "Enter a public website address." },
-        { status: 400 },
+        {
+          error:
+            "The website could not be analyzed right now. Please try again shortly.",
+        },
+        { status: response.status === 429 ? 429 : 502 },
       );
     }
 
-    const strategy = normalizeStrategy(body.strategy);
-
-    const ip = clientKey(request);
-    if (!allowRequest(`website-check:${ip}`, 6, 60 * 60 * 1000)) {
-      return NextResponse.json(
-        { error: "This check is limited to a few runs an hour. Try again later." },
-        { status: 429 },
-      );
-    }
-
-    const cacheKey = `website-check:${strategy}:${url}`;
-    const cached = getCached<WebsiteCheckResult>(cacheKey);
-    const result = cached ?? (await runWebsiteCheck(url, strategy, request));
-    if (!cached && result.psiAvailable) {
-      setCached(cacheKey, result, 6 * 60 * 60 * 1000);
-    }
-
-    return NextResponse.json({ ok: true, result });
+    return NextResponse.json(
+      { ok: true, report: normalizeWebhookResponse(result, url, strategy) },
+      { headers: { "cache-control": "no-store" } },
+    );
   } catch (error) {
-    console.error("Website check failed.", error);
+    const timedOut = error instanceof Error && error.name === "AbortError";
     return NextResponse.json(
       {
-        error:
-          error instanceof Error && /timeout|aborted/i.test(error.message)
-            ? "The speed test took too long to come back. Run it once more."
-            : "The check did not finish.",
+        error: timedOut
+          ? "The website took too long to analyze. Please wait a moment and try again."
+          : error instanceof Error && error.message.includes("incomplete")
+            ? "The analysis service returned an incomplete report."
+            : "The website could not be analyzed right now. Please try again shortly.",
       },
-      { status: 504 },
+      { status: timedOut ? 504 : 502 },
     );
+  } finally {
+    clearTimeout(timeout);
   }
 }
