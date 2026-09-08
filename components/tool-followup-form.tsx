@@ -26,12 +26,12 @@ export function ToolFollowupForm({
     const payload = Object.fromEntries(new FormData(form).entries());
 
     try {
-      const response = await fetch("/api/tools", {
+      const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...payload,
-          event: "tool_lead",
+          form_type: "tool_followup",
           tool,
           tool_result: context,
         }),
@@ -78,8 +78,13 @@ export function ToolFollowupForm({
           <input name="name" type="text" autoComplete="name" required />
         </label>
         <label>
-          Business name
-          <input name="business_name" type="text" autoComplete="organization" />
+          Business name <span aria-hidden="true">*</span>
+          <input
+            name="business_name"
+            type="text"
+            autoComplete="organization"
+            required
+          />
         </label>
         <label>
           Email

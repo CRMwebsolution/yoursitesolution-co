@@ -136,10 +136,40 @@ function unwrapWebhookResponse(value: unknown): JsonRecord {
 
     const record = asRecord(current);
     if (!Object.keys(record).length) return {};
+
+    // Some workflows add a status summary beside the actual nested report.
+    // Prefer an explicit report wrapper before treating that status as content.
+    const explicitReport = record.report;
+    if (
+      (Array.isArray(explicitReport) && explicitReport.length > 0) ||
+      (typeof explicitReport === "string" && explicitReport.trim()) ||
+      Object.keys(asRecord(explicitReport)).length > 0
+    ) {
+      current = explicitReport;
+      continue;
+    }
+
+    const nestedReport = [
+      record.data,
+      record.result,
+      record.output,
+      record.body,
+      record.json,
+    ].find((candidate) => {
+      const unwrapped = Array.isArray(candidate) ? candidate[0] : candidate;
+      const parsed =
+        typeof unwrapped === "string" ? parseJson(unwrapped) : unwrapped;
+      return looksLikeReport(asRecord(parsed));
+    });
+
+    if (nestedReport !== undefined) {
+      current = nestedReport;
+      continue;
+    }
+
     if (looksLikeReport(record)) return record;
 
     const next = [
-      record.report,
       record.data,
       record.result,
       record.output,
@@ -166,6 +196,7 @@ function normalizeScoreValue(value: unknown): number | null {
     );
   }
 
+  const isPercent = typeof value === "string" && value.includes("%");
   const parsed =
     typeof value === "number"
       ? value
@@ -174,7 +205,7 @@ function normalizeScoreValue(value: unknown): number | null {
         : Number.NaN;
 
   if (!Number.isFinite(parsed)) return null;
-  const score = parsed >= 0 && parsed <= 1 ? parsed * 100 : parsed;
+  const score = !isPercent && parsed >= 0 && parsed <= 1 ? parsed * 100 : parsed;
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 

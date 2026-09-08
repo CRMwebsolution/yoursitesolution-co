@@ -17,7 +17,7 @@ import { publishedProjects } from "@/config/site";
 const links = [
   { href: "/websites", label: "Websites" },
   { href: "/automation", label: "Automation" },
-  { href: "/tools", label: "Website Check" },
+  { href: "/tools", label: "Free Tools" },
   { href: "/pricing", label: "Pricing" },
   ...(publishedProjects.length ? [{ href: "/work", label: "Work" }] : []),
 ];
