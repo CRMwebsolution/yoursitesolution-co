@@ -1,3 +1,5 @@
+import { requestToolsWebhook, unwrapN8nData } from "@/lib/n8n";
+
 export type ScoreBand = "good" | "okay" | "poor" | "unknown";
 export type CheckStrategy = "mobile" | "desktop";
 
@@ -29,6 +31,10 @@ export type WebsiteCheckResult = {
     cls: string | null;
     inp: string | null;
   };
+  metrics: string[];
+  issues: string[];
+  opportunities: string[];
+  goodThings: string[];
   reachability: ReachabilityItem[];
   notes: string[];
   psiAvailable: boolean;
@@ -70,6 +76,28 @@ function band(score: number | null): ScoreBand {
 function firstMatch(html: string, pattern: RegExp) {
   const match = html.match(pattern);
   return match?.[1]?.replace(/\s+/g, " ").trim() || null;
+}
+
+function asStringList(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
+    .filter(Boolean);
+}
+
+function readScore(value: unknown): number | null {
+  if (typeof value !== "number" || Number.isNaN(value)) return null;
+  const score = value <= 1 ? Math.round(value * 100) : Math.round(value);
+  return Math.min(100, Math.max(0, score));
+}
+
+function metricValue(metrics: string[], label: string) {
+  const row = metrics.find((item) =>
+    item.toLowerCase().includes(label.toLowerCase()),
+  );
+  if (!row) return null;
+  const parts = row.split(":");
+  return parts.slice(1).join(":").trim() || null;
 }
 
 function analyzeHtml(
@@ -171,66 +199,46 @@ function analyzeHtml(
   };
 }
 
-type PsiCategory = { score?: number };
-type PsiAudit = { displayValue?: string; numericValue?: number };
+function scoresFromAudit(audit: Record<string, unknown> | null): CategoryScore[] {
+  const rawScores =
+    audit && typeof audit.scores === "object" && audit.scores
+      ? (audit.scores as Record<string, unknown>)
+      : {};
 
-async function runPsi(url: string, strategy: CheckStrategy) {
-  const endpoint = new URL(
-    "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
-  );
-  endpoint.searchParams.set("url", url);
-  endpoint.searchParams.set("strategy", strategy);
-  for (const category of [
-    "PERFORMANCE",
-    "ACCESSIBILITY",
-    "BEST_PRACTICES",
-    "SEO",
-  ]) {
-    endpoint.searchParams.append("category", category);
-  }
-  const key = process.env.PAGESPEED_API_KEY;
-  if (key) endpoint.searchParams.set("key", key);
-
-  const response = await fetch(endpoint, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(45000),
-  });
-  if (!response.ok) return null;
-  return response.json() as Promise<{
-    lighthouseResult?: {
-      categories?: Record<string, PsiCategory>;
-      audits?: Record<string, PsiAudit>;
-    };
-  }>;
-}
-
-function readCategories(
-  data: Awaited<ReturnType<typeof runPsi>>,
-): CategoryScore[] {
-  const cats = data?.lighthouseResult?.categories || {};
-  const map: Array<[string, string, string]> = [
-    ["performance", "Speed", "performance"],
-    ["accessibility", "Accessibility", "accessibility"],
-    ["best-practices", "Best practices", "best-practices"],
-    ["seo", "SEO basics", "seo"],
+  const map: Array<[string, string, string[]]> = [
+    ["performance", "Speed", ["performance"]],
+    ["accessibility", "Accessibility", ["accessibility"]],
+    ["best-practices", "Best practices", ["best_practices", "best-practices"]],
+    ["seo", "SEO basics", ["seo"]],
   ];
-  return map.map(([id, label, key]) => {
-    const raw = cats[key]?.score;
-    const score = typeof raw === "number" ? Math.round(raw * 100) : null;
+
+  return map.map(([id, label, keys]) => {
+    const score = keys.reduce<number | null>((found, key) => {
+      return found ?? readScore(rawScores[key]);
+    }, null);
     return { id, label, score, band: band(score) };
   });
-}
-
-function readVital(audit?: PsiAudit) {
-  return audit?.displayValue || null;
 }
 
 export async function runWebsiteCheck(
   url: string,
   strategy: CheckStrategy,
+  request: Request,
 ): Promise<WebsiteCheckResult> {
-  const [psi, page] = await Promise.all([
-    runPsi(url, strategy).catch(() => null),
+  const [auditResponse, page] = await Promise.all([
+    requestToolsWebhook(
+      {
+        event: "tool_run",
+        tool: "website-check",
+        action: "run_pagespeed_audit",
+        url,
+        requested_url: url,
+        current_website: url,
+        strategy,
+      },
+      request,
+      55000,
+    ),
     fetch(url, {
       cache: "no-store",
       redirect: "follow",
@@ -259,16 +267,19 @@ export async function runWebsiteCheck(
             label: "Homepage readable",
             ok: false,
             detail:
-              "The page could not be read directly. Speed scores may still come back from Google.",
+              "The page could not be read directly. Speed scores may still come back from the audit.",
           },
         ],
       };
 
-  const scores = readCategories(psi);
-  const audits = psi?.lighthouseResult?.audits || {};
-  const psiAvailable = Boolean(psi);
+  const audit = unwrapN8nData(auditResponse.data);
+  const scores = scoresFromAudit(audit);
+  const metrics = asStringList(audit?.metrics);
+  const issues = asStringList(audit?.critical_issues);
+  const opportunities = asStringList(audit?.opportunities);
+  const goodThings = asStringList(audit?.good_things);
+  const psiAvailable = scores.some((item) => typeof item.score === "number");
   const speed = scores.find((item) => item.id === "performance")?.score;
-  const device = strategy === "desktop" ? "desktop" : "a phone";
   const notes: string[] = [];
 
   if (typeof speed === "number") {
@@ -291,11 +302,15 @@ export async function runWebsiteCheck(
           : "On desktop, this page is slow enough that people may leave before it is useful.",
       );
     }
-  } else if (!psiAvailable) {
+  } else {
     notes.push(
-      `Google’s ${device} speed test was not available just now. The homepage checks below still ran.`,
+      strategy === "mobile"
+        ? "The mobile speed test did not return scores this time. The homepage checks below still ran."
+        : "The desktop speed test did not return scores this time. The homepage checks below still ran.",
     );
   }
+
+  notes.push(...issues.slice(0, 2));
 
   const phone = base.reachability.find((item) => item.id === "phone");
   if (phone && !phone.ok) {
@@ -317,22 +332,28 @@ export async function runWebsiteCheck(
     );
   }
 
-  if (notes.length === 0) {
-    notes.push(
-      "The basics look in place. If the site still is not getting calls, the issue is usually the offer, the copy, or how easy the next step is.",
-    );
-  }
+  const finalUrl =
+    typeof audit?.final_url === "string" && audit.final_url.startsWith("http")
+      ? audit.final_url
+      : url;
 
   return {
     ...base,
+    url: finalUrl,
     strategy,
     scores,
     vitals: {
-      lcp: readVital(audits["largest-contentful-paint"]),
-      cls: readVital(audits["cumulative-layout-shift"]),
-      inp: readVital(audits["interaction-to-next-paint"]),
+      lcp: metricValue(metrics, "Largest Contentful Paint"),
+      cls: metricValue(metrics, "Cumulative Layout Shift"),
+      inp:
+        metricValue(metrics, "Interaction to Next Paint") ||
+        metricValue(metrics, "Total Blocking Time"),
     },
-    notes: notes.slice(0, 5),
+    metrics,
+    issues,
+    opportunities,
+    goodThings,
+    notes: notes.slice(0, 6),
     psiAvailable,
   };
 }
