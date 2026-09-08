@@ -139,8 +139,7 @@ export function WebsiteCheckTool() {
         </div>
         {status === "running" ? (
           <p className="tool-disclaimer" role="status">
-            Checking the site now. This uses the same PageSpeed test as the
-            Southern Automate checker.
+            Checking the site now. Stay on this page until the scores show up.
           </p>
         ) : null}
         {error ? (
