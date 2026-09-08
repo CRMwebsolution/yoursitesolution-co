@@ -1,377 +1,231 @@
-import { requestToolsWebhook, unwrapN8nData } from "@/lib/n8n";
-
-export type ScoreBand = "good" | "okay" | "poor" | "unknown";
 export type CheckStrategy = "mobile" | "desktop";
 
-export type CategoryScore = {
-  id: string;
-  label: string;
-  score: number | null;
-  band: ScoreBand;
+export type AuditFinding = {
+  title: string;
+  explanation?: string;
+  businessImpact?: string;
+  recommendation?: string;
 };
 
-export type ReachabilityItem = {
-  id: string;
-  label: string;
-  ok: boolean;
-  detail: string;
-};
-
-export type WebsiteCheckResult = {
+export type WebsiteCheckReport = {
   url: string;
-  strategy: CheckStrategy;
-  fetched: boolean;
-  https: boolean;
-  title: string | null;
-  metaDescription: string | null;
-  h1: string | null;
-  scores: CategoryScore[];
-  vitals: {
-    lcp: string | null;
-    cls: string | null;
-    inp: string | null;
-  };
+  testedAt: string;
+  strategy: string;
+  summary: string;
   metrics: string[];
-  issues: string[];
-  opportunities: string[];
-  goodThings: string[];
-  reachability: ReachabilityItem[];
-  notes: string[];
-  psiAvailable: boolean;
+  scores: {
+    performance: number | null;
+    accessibility: number | null;
+    bestPractices: number | null;
+    seo: number | null;
+  };
+  fixFirst: AuditFinding[];
+  worthImproving: AuditFinding[];
+  doingWell: AuditFinding[];
+  disclaimer: string;
 };
+
+export type WebsiteCheckResult = WebsiteCheckReport;
+
+type JsonRecord = Record<string, unknown>;
 
 export function normalizeStrategy(value: unknown): CheckStrategy {
   return value === "desktop" ? "desktop" : "mobile";
 }
 
-const PRIVATE_HOST =
-  /^(localhost|127\.|10\.|192\.168\.|169\.254\.|0\.0\.0\.0|::1|172\.(1[6-9]|2\d|3[0-1])\.)/i;
-
-export function normalizePublicUrl(input: string): string | null {
-  const trimmed = input.trim();
-  if (!trimmed || trimmed.length > 2048) return null;
-
+export function normalizePublicUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim() || value.length > 2048) {
+    return null;
+  }
+  const trimmed = value.trim();
   const withProtocol = /^https?:\/\//i.test(trimmed)
     ? trimmed
     : `https://${trimmed}`;
 
   try {
-    const parsed = new URL(withProtocol);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
-    if (PRIVATE_HOST.test(parsed.hostname)) return null;
-    parsed.hash = "";
-    return parsed.toString();
+    const url = new URL(withProtocol);
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+    const blockedHost =
+      hostname === "localhost" ||
+      hostname.endsWith(".localhost") ||
+      hostname.endsWith(".local") ||
+      hostname.endsWith(".internal");
+    const blockedIpv4 =
+      /^(?:0|10|127|169\.254|192\.168|172\.(?:1[6-9]|2\d|3[01]))(?:\.|$)/.test(
+        hostname,
+      );
+    const blockedIpv6 =
+      hostname === "::1" ||
+      hostname.startsWith("fc") ||
+      hostname.startsWith("fd") ||
+      hostname.startsWith("fe80:");
+    if (
+      !hostname ||
+      blockedHost ||
+      blockedIpv4 ||
+      blockedIpv6 ||
+      !["http:", "https:"].includes(url.protocol)
+    ) {
+      return null;
+    }
+    url.username = "";
+    url.password = "";
+    url.hash = "";
+    return url.pathname === "/" && !url.search ? url.origin : url.toString();
   } catch {
     return null;
   }
 }
 
-function band(score: number | null): ScoreBand {
-  if (score === null) return "unknown";
-  if (score >= 90) return "good";
-  if (score >= 50) return "okay";
-  return "poor";
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as JsonRecord)
+    : {};
 }
 
-function firstMatch(html: string, pattern: RegExp) {
-  const match = html.match(pattern);
-  return match?.[1]?.replace(/\s+/g, " ").trim() || null;
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
 }
 
 function asStringList(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value
-    .map((item) => (typeof item === "string" ? item.trim() : ""))
-    .filter(Boolean);
+    .filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
+    .map((item) => item.trim());
 }
 
-function readScore(value: unknown): number | null {
-  if (typeof value !== "number" || Number.isNaN(value)) return null;
-  const score = value <= 1 ? Math.round(value * 100) : Math.round(value);
-  return Math.min(100, Math.max(0, score));
+function normalizeScore(...values: unknown[]): number | null {
+  for (const value of values) {
+    const parsed =
+      typeof value === "number"
+        ? value
+        : typeof value === "string"
+          ? Number(value)
+          : Number.NaN;
+    if (!Number.isFinite(parsed)) continue;
+    const score = parsed >= 0 && parsed <= 1 ? parsed * 100 : parsed;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+  return null;
 }
 
-function metricValue(metrics: string[], label: string) {
-  const row = metrics.find((item) =>
-    item.toLowerCase().includes(label.toLowerCase()),
-  );
-  if (!row) return null;
-  const parts = row.split(":");
-  return parts.slice(1).join(":").trim() || null;
-}
-
-function analyzeHtml(
-  url: string,
-  html: string,
-): Pick<
-  WebsiteCheckResult,
-  | "url"
-  | "fetched"
-  | "https"
-  | "title"
-  | "metaDescription"
-  | "h1"
-  | "reachability"
-> {
-  const title = firstMatch(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
-  const metaDescription =
-    firstMatch(
-      html,
-      /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["'][^>]*>/i,
-    ) ||
-    firstMatch(
-      html,
-      /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["'][^>]*>/i,
+function normalizeFindings(value: unknown): AuditFinding[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (typeof entry === "string" && entry.trim()) {
+      return [{ title: entry.trim() }];
+    }
+    const item = asRecord(entry);
+    const title = firstString(item.title, item.heading, item.name, item.issue);
+    const explanation = firstString(
+      item.explanation,
+      item.description,
+      item.detail,
+      item.message,
     );
-  const extractedHeading = firstMatch(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/i);
-  const h1 = extractedHeading
-    ? extractedHeading.replace(/<[^>]+>/g, "").trim() || null
-    : null;
-  const hasTel = /href=["']tel:/i.test(html);
-  const hasMailto = /href=["']mailto:/i.test(html);
-  const hasForm = /<form\b/i.test(html);
-  const hasViewport = /name=["']viewport["']/i.test(html);
-  const hasHours =
-    /\b(hours|open|monday|mon–|mon-|\d{1,2}\s?(am|pm))\b/i.test(html);
-  const visiblePhone = /(\+?1[-.\s]?)?(\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4})/.test(
-    html.replace(/<script[\s\S]*?<\/script>/gi, ""),
-  );
-
-  return {
-    url,
-    fetched: true,
-    https: url.startsWith("https://"),
-    title,
-    metaDescription,
-    h1,
-    reachability: [
+    if (!title && !explanation) return [];
+    const businessImpact = firstString(
+      item.businessImpact,
+      item.business_impact,
+      item.impact,
+    );
+    const recommendation = firstString(
+      item.recommendation,
+      item.suggestedFix,
+      item.suggested_fix,
+      item.fix,
+    );
+    return [
       {
-        id: "https",
-        label: "Secure connection",
-        ok: url.startsWith("https://"),
-        detail: url.startsWith("https://")
-          ? "The address uses HTTPS."
-          : "The address is not on HTTPS.",
+        title: title || explanation,
+        ...(title && explanation ? { explanation } : {}),
+        ...(businessImpact ? { businessImpact } : {}),
+        ...(recommendation ? { recommendation } : {}),
       },
-      {
-        id: "viewport",
-        label: "Built for phones",
-        ok: hasViewport,
-        detail: hasViewport
-          ? "A mobile viewport tag is present."
-          : "No mobile viewport tag showed up in the homepage HTML.",
-      },
-      {
-        id: "phone",
-        label: "Tap-to-call number",
-        ok: hasTel,
-        detail: hasTel
-          ? "A clickable phone link is on the page."
-          : visiblePhone
-            ? "A phone number appears as text, but it is not a tap-to-call link."
-            : "No phone number stood out on the homepage.",
-      },
-      {
-        id: "form",
-        label: "Way to get in touch",
-        ok: hasForm || hasMailto,
-        detail: hasForm
-          ? "A form is on the page."
-          : hasMailto
-            ? "An email link is on the page."
-            : "No form or email link was obvious on the homepage.",
-      },
-      {
-        id: "hours",
-        label: "Hours mentioned",
-        ok: hasHours,
-        detail: hasHours
-          ? "Hours or opening language appears on the page."
-          : "Hours were not obvious from the homepage text.",
-      },
-      {
-        id: "title",
-        label: "Page title",
-        ok: Boolean(title && title.length > 8 && !/untitled|home page/i.test(title)),
-        detail: title ? `Title: ${title}` : "No page title was found.",
-      },
-    ],
-  };
-}
-
-function scoresFromAudit(audit: Record<string, unknown> | null): CategoryScore[] {
-  const rawScores =
-    audit && typeof audit.scores === "object" && audit.scores
-      ? (audit.scores as Record<string, unknown>)
-      : {};
-
-  const map: Array<[string, string, string[]]> = [
-    ["performance", "Speed", ["performance"]],
-    ["accessibility", "Accessibility", ["accessibility"]],
-    ["best-practices", "Best practices", ["best_practices", "best-practices"]],
-    ["seo", "SEO basics", ["seo"]],
-  ];
-
-  return map.map(([id, label, keys]) => {
-    const score = keys.reduce<number | null>((found, key) => {
-      return found ?? readScore(rawScores[key]);
-    }, null);
-    return { id, label, score, band: band(score) };
+    ];
   });
 }
 
-export async function runWebsiteCheck(
-  url: string,
-  strategy: CheckStrategy,
-  request: Request,
-): Promise<WebsiteCheckResult> {
-  const [auditResponse, page] = await Promise.all([
-    requestToolsWebhook(
-      {
-        event: "tool_run",
-        tool: "website-check",
-        action: "run_pagespeed_audit",
-        url,
-        requested_url: url,
-        current_website: url,
-        strategy,
-      },
-      request,
-      55000,
-    ),
-    fetch(url, {
-      cache: "no-store",
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "YourSiteSolutionWebsiteCheck/1.0 (+https://yoursitesolution.com/tools/website-check)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      signal: AbortSignal.timeout(12000),
-    }).catch(() => null),
-  ]);
-
-  const html = page && page.ok ? (await page.text()).slice(0, 350000) : "";
-  const base = html
-    ? analyzeHtml(url, html)
-    : {
-        url,
-        fetched: false,
-        https: url.startsWith("https://"),
-        title: null,
-        metaDescription: null,
-        h1: null,
-        reachability: [
-          {
-            id: "fetch",
-            label: "Homepage readable",
-            ok: false,
-            detail:
-              "The page could not be read directly. Speed scores may still come back from the audit.",
-          },
-        ],
-      };
-
-  const audit = unwrapN8nData(auditResponse.data);
-  const scores = scoresFromAudit(audit);
-  const metrics = asStringList(audit?.metrics);
-  const issues = asStringList(audit?.critical_issues);
-  const opportunities = asStringList(audit?.opportunities);
-  const goodThings = asStringList(audit?.good_things);
-  const psiAvailable = scores.some((item) => typeof item.score === "number");
-  const speed = scores.find((item) => item.id === "performance")?.score;
-  const notes: string[] = [];
-
-  if (typeof speed === "number") {
-    if (speed >= 90) {
-      notes.push(
-        strategy === "mobile"
-          ? "Mobile speed looks solid. That is the version most customers actually use."
-          : "Desktop speed looks solid on this run.",
-      );
-    } else if (speed >= 50) {
-      notes.push(
-        strategy === "mobile"
-          ? "The site works, but phones are waiting longer than they should. People often leave before the page is useful."
-          : "The desktop version works, but it is waiting longer than it should.",
-      );
-    } else {
-      notes.push(
-        strategy === "mobile"
-          ? "On a phone, this page is slow enough that a lot of people will bounce. That usually matters more than how it looks on a desktop."
-          : "On desktop, this page is slow enough that people may leave before it is useful.",
-      );
-    }
-  } else {
-    notes.push(
-      strategy === "mobile"
-        ? "The mobile speed test did not return scores this time. The homepage checks below still ran."
-        : "The desktop speed test did not return scores this time. The homepage checks below still ran.",
-    );
-  }
-
-  notes.push(...issues.slice(0, 2));
-
-  const phone = base.reachability.find((item) => item.id === "phone");
-  if (phone && !phone.ok) {
-    notes.push(
-      "If a customer is on a phone and cannot tap to call, you are making them work to hire you.",
-    );
-  }
-
-  const contact = base.reachability.find((item) => item.id === "form");
-  if (contact && !contact.ok) {
-    notes.push(
-      "There is no obvious form or email link on the homepage. A visitor who will not call has no next step.",
-    );
-  }
-
-  if (!base.title) {
-    notes.push(
-      "The homepage is missing a real page title. That is a basic trust and search signal.",
-    );
-  }
-
-  const finalUrl =
-    typeof audit?.final_url === "string" && audit.final_url.startsWith("http")
-      ? audit.final_url
-      : url;
-
-  return {
-    ...base,
-    url: finalUrl,
-    strategy,
-    scores,
-    vitals: {
-      lcp: metricValue(metrics, "Largest Contentful Paint"),
-      cls: metricValue(metrics, "Cumulative Layout Shift"),
-      inp:
-        metricValue(metrics, "Interaction to Next Paint") ||
-        metricValue(metrics, "Total Blocking Time"),
-    },
-    metrics,
-    issues,
-    opportunities,
-    goodThings,
-    notes: notes.slice(0, 6),
-    psiAvailable,
-  };
+function unwrapWebhookResponse(value: unknown): JsonRecord {
+  const first = Array.isArray(value) ? value[0] : value;
+  const outer = asRecord(first);
+  const report = asRecord(outer.report);
+  return report.url || report.scores ? report : outer;
 }
 
-export function summarizeCheck(result: WebsiteCheckResult) {
-  const speed =
-    result.scores.find((item) => item.id === "performance")?.score ?? null;
-  const missing = result.reachability
-    .filter((item) => !item.ok)
-    .map((item) => item.label);
+export function normalizeWebhookResponse(
+  value: unknown,
+  requestedUrl: string,
+  requestedStrategy: CheckStrategy,
+): WebsiteCheckReport {
+  const source = unwrapWebhookResponse(value);
+  const scores = asRecord(source.scores);
+  const performance = normalizeScore(
+    scores.performance,
+    source.performance,
+    source.overallPerformance,
+    source.overall_performance,
+  );
+  const accessibility = normalizeScore(scores.accessibility, source.accessibility);
+  const bestPractices = normalizeScore(
+    scores.bestPractices,
+    scores.best_practices,
+    source.bestPractices,
+    source.best_practices,
+  );
+  const seo = normalizeScore(scores.seo, source.seo);
+  const summaryList = asStringList(source.summary);
+  const summary =
+    firstString(
+      source.overallSummary,
+      source.overall_summary,
+      source.report_text,
+      typeof source.summary === "string" ? source.summary : "",
+    ) ||
+    (summaryList.length
+      ? summaryList.join(" ")
+      : "Your website check finished. Review the scores and findings below.");
+  const fixFirst = normalizeFindings(
+    source.fixFirst ??
+      source.fix_first ??
+      source.criticalIssues ??
+      source.critical_issues,
+  );
+  const worthImproving = normalizeFindings(
+    source.worthImproving ?? source.worth_improving ?? source.opportunities,
+  );
+  const doingWell = normalizeFindings(
+    source.doingWell ?? source.doing_well ?? source.goodThings ?? source.good_things,
+  );
+
+  if (
+    [performance, accessibility, bestPractices, seo].every((score) => score === null) &&
+    !fixFirst.length &&
+    !worthImproving.length &&
+    !doingWell.length
+  ) {
+    throw new Error("The analysis service returned an incomplete report.");
+  }
 
   return {
-    url: result.url,
-    strategy: result.strategy,
-    speed,
-    https: result.https,
-    title: result.title,
-    missing,
-    notes: result.notes,
+    url: firstString(source.url, source.finalUrl, source.final_url) || requestedUrl,
+    testedAt:
+      firstString(source.testedAt, source.tested_at, source.analyzed_at) ||
+      new Date().toISOString(),
+    strategy: firstString(source.strategy) || requestedStrategy,
+    summary,
+    metrics: asStringList(source.metrics).length
+      ? asStringList(source.metrics)
+      : summaryList,
+    scores: { performance, accessibility, bestPractices, seo },
+    fixFirst,
+    worthImproving,
+    doingWell,
+    disclaimer:
+      firstString(source.disclaimer) ||
+      "This report is a snapshot. Scores can change as internet, server, and website conditions change.",
   };
 }
