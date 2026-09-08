@@ -158,6 +158,30 @@
   padding: 0.9rem 1rem;
 }
 
+.audit-block {
+  margin: 0 0 1.4rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 1rem 1.1rem;
+}
+
+.audit-block ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audit-block li {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.audit-good li {
+  color: #1e6b45;
+}
+
 .reach-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
