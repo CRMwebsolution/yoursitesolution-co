@@ -1,27 +1,20 @@
 import type { Metadata } from "next";
-import { Outfit, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
+import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 import "./brand.css";
 
-const outfit = Outfit({
+const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-serif",
   display: "swap",
 });
 
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source",
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-ibm-plex-mono",
   display: "swap",
 });
 
@@ -71,7 +64,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${outfit.variable} ${sourceSans.variable} ${plexMono.variable}`}
+      className={`scroll-smooth ${sourceSerif.variable} ${sourceSans.variable}`}
     >
       <body>
         <a className="skip-link" href="#main-content">
