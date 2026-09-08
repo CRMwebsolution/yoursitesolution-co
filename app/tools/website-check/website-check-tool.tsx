@@ -101,7 +101,7 @@ export function WebsiteCheckTool() {
             {status === "running" ? "Checking…" : "Run the check"}
             <ArrowRight aria-hidden="true" />
           </button>
-          <p>Takes about 15 seconds. Results show up on this page.</p>
+          <p>Takes about 20–40 seconds. Results show up on this page.</p>
         </div>
         {error ? (
           <p className="form-error" role="alert">
@@ -135,10 +135,21 @@ export function WebsiteCheckTool() {
                 <dd>{result.vitals.cls || "—"}</dd>
               </div>
               <div>
-                <dt>Input delay</dt>
+                <dt>Blocking time</dt>
                 <dd>{result.vitals.inp || "—"}</dd>
               </div>
             </dl>
+          ) : null}
+
+          {result.metrics.length ? (
+            <section className="audit-block">
+              <p className="eyebrow">Key metrics</p>
+              <ul>
+                {result.metrics.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
           ) : null}
 
           <ul className="note-list">
@@ -146,6 +157,39 @@ export function WebsiteCheckTool() {
               <li key={note}>{note}</li>
             ))}
           </ul>
+
+          {result.issues.length ? (
+            <section className="audit-block">
+              <p className="eyebrow">Biggest problems</p>
+              <ul>
+                {result.issues.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {result.opportunities.length ? (
+            <section className="audit-block">
+              <p className="eyebrow">What to fix next</p>
+              <ul>
+                {result.opportunities.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {result.goodThings.length ? (
+            <section className="audit-block audit-good">
+              <p className="eyebrow">Already good</p>
+              <ul>
+                {result.goodThings.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <div className="reach-grid">
             {result.reachability.map((item) => (
