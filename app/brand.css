@@ -1,0 +1,127 @@
+/* Shop Standard overlays the existing job-ticket system.
+   Tokens keep the original --ink / --orange names so the rest of the CSS follows. */
+
+:root {
+  --pitch: #1a1c19;
+  --pine: #1f4a3a;
+  --copper: #c45c26;
+  --parchment: #f4efe6;
+  --fog: #d8d3c8;
+  --salt: #fafaf7;
+  --ink: var(--pine);
+  --ink-soft: #16382c;
+  --paper: var(--parchment);
+  --paper-light: var(--salt);
+  --orange: var(--copper);
+  --orange-dark: #a34a1c;
+  --steel: #8a8680;
+  --muted: #5c5a54;
+  --line: var(--fog);
+  --line-dark: rgba(250, 250, 247, 0.18);
+  --background: var(--paper-light);
+  --foreground: var(--pitch);
+  --card: var(--paper-light);
+  --card-foreground: var(--pitch);
+  --primary: var(--copper);
+  --secondary: var(--parchment);
+  --accent: #e8e2d6;
+  --border: var(--fog);
+  --input: #a39e94;
+  --ring: var(--copper);
+  --radius: 0.35rem;
+}
+
+h1,
+h2,
+h3,
+.brand,
+.button,
+.circle-link {
+  font-family: var(--font-outfit), Outfit, Arial, Helvetica, sans-serif;
+}
+
+body {
+  color: var(--pitch);
+  font-family: var(--font-source), "Source Sans 3", Arial, Helvetica, sans-serif;
+}
+
+.eyebrow,
+.hero-assurance,
+.sheet-topline,
+.sheet-specs dt,
+.proof-grid span,
+.service-number,
+.price-card-topline p,
+.payment-options span,
+.about-stamp span,
+.quote-block p,
+.hero-aside-stack span,
+.quote-note span,
+.demo-ticket span,
+.inclusion-grid article > span,
+.footer-column p,
+.footer-bottom {
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", "Courier New", Courier, monospace;
+}
+
+.site-header {
+  border-bottom: 1px solid rgba(31, 74, 58, 0.14);
+  background: rgba(250, 250, 247, 0.94);
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pine);
+  color: var(--salt);
+  font-family: var(--font-outfit), Outfit, Arial, Helvetica, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 750;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  text-align: center;
+  grid-template-columns: 1fr;
+}
+
+.brand-mark span:last-child {
+  background: transparent;
+}
+
+.brand-name {
+  font-family: var(--font-outfit), Outfit, Arial, Helvetica, sans-serif;
+}
+
+.home-hero::after {
+  border-color: rgba(196, 92, 38, 0.16);
+}
+
+.build-sheet {
+  box-shadow: 18px 18px 0 rgba(196, 92, 38, 0.18);
+}
+
+.eyebrow-light,
+.text-link-light:hover,
+.site-footer .brand-name span,
+.footer-column p {
+  color: #e08a5a;
+}
+
+.hero-lede,
+.text-light,
+.lede-light,
+.footer-note,
+.footer-column a,
+.footer-column span,
+.footer-bottom {
+  color: #c5bfb4;
+}
+
+.button-dark:hover {
+  border-color: #16382c;
+  background: #16382c;
+}
