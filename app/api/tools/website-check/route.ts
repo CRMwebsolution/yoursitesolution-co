@@ -11,6 +11,7 @@ import {
   getCached,
   setCached,
 } from "@/lib/rate-limit";
+import { requestToolsWorkflow } from "@/lib/tools-workflow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,58 +62,43 @@ export async function POST(request: Request) {
     );
   }
 
-  const webhook =
-    process.env.N8N_TOOLS_WEBHOOK?.trim() ||
-    process.env.N8N_WEBSITE_AUDIT_WEBHOOK_URL?.trim();
-  if (!webhook) {
-    return NextResponse.json(
-      { error: "The website checker is being connected. Please try again later." },
-      { status: 503 },
-    );
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 110_000);
-
   try {
-    const headers: Record<string, string> = {
-      "content-type": "application/json",
-      accept: "application/json",
-    };
-    const token =
-      process.env.N8N_TOOLS_TOKEN?.trim() ||
-      process.env.N8N_WEBSITE_AUDIT_TOKEN?.trim();
-    if (token) headers.authorization = `Bearer ${token}`;
+    const workflow = await requestToolsWorkflow(
+      "website-check",
+      { url, strategy },
+      110_000,
+    );
 
-    const response = await fetch(webhook, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ url, strategy }),
-      cache: "no-store",
-      signal: controller.signal,
-    });
+    if (workflow.error === "not-configured") {
+      return NextResponse.json(
+        {
+          error: "The website checker is being connected. Please try again later.",
+        },
+        { status: 503 },
+      );
+    }
 
-    const responseText = await response.text();
-    const result = responseText
-      ? (() => {
-          try {
-            return JSON.parse(responseText) as unknown;
-          } catch {
-            return null;
-          }
-        })()
-      : null;
-    if (!response.ok || !result) {
+    if (workflow.error === "timeout") {
+      return NextResponse.json(
+        {
+          error:
+            "The website took too long to analyze. Please wait a moment and try again.",
+        },
+        { status: 504 },
+      );
+    }
+
+    if (!workflow.ok || !workflow.data) {
       return NextResponse.json(
         {
           error:
             "The website could not be analyzed right now. Please try again shortly.",
         },
-        { status: response.status === 429 ? 429 : 502 },
+        { status: workflow.status === 429 ? 429 : 502 },
       );
     }
 
-    const report = normalizeWebhookResponse(result, url, strategy);
+    const report = normalizeWebhookResponse(workflow.data, url, strategy);
     setCached(cacheKey, report, CACHE_TIME);
 
     return NextResponse.json(
@@ -120,18 +106,14 @@ export async function POST(request: Request) {
       { headers: { "cache-control": "no-store" } },
     );
   } catch (error) {
-    const timedOut = error instanceof Error && error.name === "AbortError";
     return NextResponse.json(
       {
-        error: timedOut
-          ? "The website took too long to analyze. Please wait a moment and try again."
-          : error instanceof Error && error.message.includes("incomplete")
+        error:
+          error instanceof Error && error.message.includes("incomplete")
             ? "The analysis service returned an incomplete report."
             : "The website could not be analyzed right now. Please try again shortly.",
       },
-      { status: timedOut ? 504 : 502 },
+      { status: 502 },
     );
-  } finally {
-    clearTimeout(timeout);
   }
 }

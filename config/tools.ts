@@ -49,3 +49,4 @@ export const tools = [
   },
 ] as const;
 
+export type ToolSlug = (typeof tools)[number]["slug"];

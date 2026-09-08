@@ -183,6 +183,7 @@ export function WebsiteCheckTool() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          tool: "website-check",
           url,
           strategy,
           company_site: event.currentTarget.company_site.value,

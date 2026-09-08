@@ -19,10 +19,29 @@ The contact and demo forms post through the server-side `/api/lead` route. Set
 `N8N_LEAD_WEBHOOK` in Vercel to the production webhook URL before launch. The
 endpoint intentionally stays out of the public repository.
 
-The free website check posts `{ url, strategy }` through
-`/api/tools/website-check`. Set `N8N_TOOLS_WEBHOOK` to the n8n PageSpeed audit
-workflow URL. If that webhook requires a bearer token, also set
-`N8N_TOOLS_TOKEN`. Neither value belongs in the repository.
+All server-backed tools use the same n8n entry webhook. Set
+`N8N_TOOLS_WEBHOOK` to that shared workflow URL. If the webhook requires a
+bearer token, also set `N8N_TOOLS_TOKEN`. Neither value belongs in the
+repository.
+
+The free website check posts this body to the shared workflow:
+
+```json
+{
+  "tool": "website-check",
+  "event": "tool_run",
+  "source": "yoursitesolution.com",
+  "submitted_at": "2026-09-08T00:00:00.000Z",
+  "url": "https://example.com",
+  "strategy": "mobile"
+}
+```
+
+The n8n Switch should route on `={{ $json.body.tool }}`. Keep each tool's
+inputs at the top level of the body so the branch after the Switch can use
+expressions such as `$json.body.url` and `$json.body.strategy`. New
+server-backed tool routes should call the shared helper in
+`lib/tools-workflow.ts` with their own registered tool slug.
 
 ## Content configuration
 
