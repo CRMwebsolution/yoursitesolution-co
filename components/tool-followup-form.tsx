@@ -5,7 +5,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
 type ToolFollowupFormProps = {
-  tool: "website-check" | "review-text" | "time-check";
+  tool: "website-check";
   heading: string;
   context: Record<string, unknown>;
 };

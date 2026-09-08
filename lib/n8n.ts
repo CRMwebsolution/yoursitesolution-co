@@ -1,6 +1,6 @@
 export type ToolsEvent = {
   event: "tool_run" | "tool_lead";
-  tool: "website-check" | "review-text" | "time-check";
+  tool: "website-check";
   [key: string]: unknown;
 };
 
@@ -12,8 +12,9 @@ export type ToolsWebhookResult = {
 
 function toolsWebhookUrl() {
   return (
-    process.env.N8N_TOOLS_WEBHOOK ||
-    "https://n8n.southernautomate.com/webhook/59c03a5c-8a65-4e97-a760-975fc5eda64b"
+    process.env.N8N_TOOLS_WEBHOOK?.trim() ||
+    process.env.N8N_WEBSITE_AUDIT_WEBHOOK_URL?.trim() ||
+    ""
   );
 }
 
@@ -42,10 +43,24 @@ export async function requestToolsWebhook(
   request: Request,
   timeoutMs = 55000,
 ): Promise<ToolsWebhookResult> {
+  const webhook = toolsWebhookUrl();
+  if (!webhook) {
+    console.error("N8N_TOOLS_WEBHOOK is not configured.");
+    return { ok: false, status: 0, data: null };
+  }
+
   try {
-    const forwarded = await fetch(toolsWebhookUrl(), {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token =
+      process.env.N8N_TOOLS_TOKEN?.trim() ||
+      process.env.N8N_WEBSITE_AUDIT_TOKEN?.trim();
+    if (token) headers.authorization = `Bearer ${token}`;
+
+    const forwarded = await fetch(webhook, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         source: "yoursitesolution.com",
         channel: "tools",

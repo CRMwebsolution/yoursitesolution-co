@@ -3,11 +3,21 @@ import {
   normalizePublicUrl,
   normalizeStrategy,
   normalizeWebhookResponse,
+  type WebsiteCheckReport,
 } from "@/lib/website-check";
+import {
+  allowRequest,
+  clientKey,
+  getCached,
+  setCached,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
+
+const RATE_LIMIT_WINDOW = 3 * 60 * 1000;
+const CACHE_TIME = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<
@@ -31,7 +41,29 @@ export async function POST(request: Request) {
     );
   }
 
-  const webhook = process.env.N8N_TOOLS_WEBHOOK?.trim();
+  const requestKey = clientKey(request);
+  if (!allowRequest(`website-check:${requestKey}`, 2, RATE_LIMIT_WINDOW)) {
+    return NextResponse.json(
+      {
+        error:
+          "You have reached the testing limit. Wait three minutes, then try again.",
+      },
+      { status: 429 },
+    );
+  }
+
+  const cacheKey = `website-check:${strategy}:${url}`;
+  const cached = getCached<WebsiteCheckReport>(cacheKey);
+  if (cached) {
+    return NextResponse.json(
+      { ok: true, report: cached },
+      { headers: { "cache-control": "no-store" } },
+    );
+  }
+
+  const webhook =
+    process.env.N8N_TOOLS_WEBHOOK?.trim() ||
+    process.env.N8N_WEBSITE_AUDIT_WEBHOOK_URL?.trim();
   if (!webhook) {
     return NextResponse.json(
       { error: "The website checker is being connected. Please try again later." },
@@ -40,29 +72,36 @@ export async function POST(request: Request) {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 55_000);
+  const timeout = setTimeout(() => controller.abort(), 110_000);
 
   try {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      accept: "application/json",
+    };
+    const token =
+      process.env.N8N_TOOLS_TOKEN?.trim() ||
+      process.env.N8N_WEBSITE_AUDIT_TOKEN?.trim();
+    if (token) headers.authorization = `Bearer ${token}`;
+
     const response = await fetch(webhook, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        url,
-        strategy,
-        source: "yoursitesolution.com",
-        channel: "tools",
-        form_type: "tools",
-        event: "tool_run",
-        tool: "website-check",
-      }),
+      headers,
+      body: JSON.stringify({ url, strategy }),
       cache: "no-store",
       signal: controller.signal,
     });
 
-    const result = await response.json().catch(() => null);
+    const responseText = await response.text();
+    const result = responseText
+      ? (() => {
+          try {
+            return JSON.parse(responseText) as unknown;
+          } catch {
+            return null;
+          }
+        })()
+      : null;
     if (!response.ok || !result) {
       return NextResponse.json(
         {
@@ -73,8 +112,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const report = normalizeWebhookResponse(result, url, strategy);
+    setCached(cacheKey, report, CACHE_TIME);
+
     return NextResponse.json(
-      { ok: true, report: normalizeWebhookResponse(result, url, strategy) },
+      { ok: true, report },
       { headers: { "cache-control": "no-store" } },
     );
   } catch (error) {

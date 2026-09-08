@@ -4,7 +4,7 @@ import { allowRequest, clientKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-const tools = ["website-check", "review-text", "time-check"] as const;
+const tools = ["website-check"] as const;
 const events = ["tool_run", "tool_lead"] as const;
 
 export async function POST(request: Request) {
