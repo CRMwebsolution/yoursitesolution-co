@@ -24,7 +24,7 @@ All server-backed tools use the same n8n entry webhook. Set
 bearer token, also set `N8N_TOOLS_TOKEN`. Neither value belongs in the
 repository.
 
-The free website check posts this body to the shared workflow:
+The free PageSpeed website check posts this body to the shared workflow:
 
 ```json
 {
@@ -42,6 +42,18 @@ inputs at the top level of the body so the branch after the Switch can use
 expressions such as `$json.body.url` and `$json.body.strategy`. New
 server-backed tool routes should call the shared helper in
 `lib/tools-workflow.ts` with their own registered tool slug.
+
+The repository also includes complete, unlisted website surfaces for four more
+live checks. They remain out of the public tools hub until their matching n8n
+Switch branches are connected:
+
+- `seo-check`
+- `social-preview-check`
+- `broken-link-check`
+- `domain-health-check`
+
+Their exact request and response contracts, safety requirements, and suggested
+sub-workflow boundaries are in [`docs/n8n-tool-contracts.md`](docs/n8n-tool-contracts.md).
 
 The Webhook trigger must use **Using Respond to Webhook Node**. At the end of
 each branch, configure **Respond to Webhook** with **Respond With: First

@@ -1,30 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import {
-  ArrowRight,
-  Clock3,
-  Gauge,
-  Search,
-  ShieldCheck,
-  Star,
-} from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { PageHero } from "@/components/page-hero";
-import { tools } from "@/config/tools";
+import { ToolLibrary } from "./tool-library";
 
 export const metadata: Metadata = {
   title: "Free small-business tools",
   description:
-    "Free practical tools for website speed, Google search listings, customer review requests, and repetitive-task costs.",
+    "Free practical tools for websites, marketing links, customer communication, search visibility, images, and business planning.",
   alternates: { canonical: "/tools" },
 };
-
-const toolIcons = {
-  "website-check": Gauge,
-  "search-preview": Search,
-  "review-text": Star,
-  "time-check": Clock3,
-} as const;
 
 export default function ToolsPage() {
   return (
@@ -36,7 +21,7 @@ export default function ToolsPage() {
             Get something useful. <em>Before we ever talk.</em>
           </>
         }
-        description="Check the site, improve what customers see in search, ask for a review without sounding awkward, or put a price on repeated office work. Use any tool without an account or email wall."
+        description="Check a website, build useful links, improve customer messages, prepare images, and organize the information a business needs online. Use any tool without an account or email wall."
         aside={
           <div className="hero-aside-stack">
             <p>
@@ -56,41 +41,16 @@ export default function ToolsPage() {
           <div className="tool-library-heading">
             <div>
               <p className="eyebrow">Choose a tool</p>
-              <h2>Useful output. No filler score.</h2>
+              <h2>Useful output. No filler.</h2>
             </div>
             <p>
-              Each tool gives you something you can inspect, copy, or act on.
-              The only live outside test is PageSpeed; the others run entirely
-              in your browser.
+              Search by the problem you are trying to solve. Most tools run
+              entirely on your device; live website checks clearly say when
+              they contact an outside service.
             </p>
           </div>
 
-          <div className="tool-index-grid">
-            {tools.map((tool) => {
-              const Icon = toolIcons[tool.slug];
-              return (
-                <article
-                  key={tool.slug}
-                  className={`tool-index-card${tool.featured ? " tool-index-card-featured" : ""}`}
-                >
-                  <div className="tool-card-topline">
-                    <span>{tool.number}</span>
-                    <span>{tool.category}</span>
-                  </div>
-                  <Icon aria-hidden="true" />
-                  <h3>{tool.name}</h3>
-                  <p>{tool.summary}</p>
-                  <dl>
-                    <dt>You get</dt>
-                    <dd>{tool.output}</dd>
-                  </dl>
-                  <Link className="text-link" href={tool.href}>
-                    {tool.action} <ArrowRight aria-hidden="true" />
-                  </Link>
-                </article>
-              );
-            })}
-          </div>
+          <ToolLibrary />
 
           <div className="tool-trust-note">
             <ShieldCheck aria-hidden="true" />
