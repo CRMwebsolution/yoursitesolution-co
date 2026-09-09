@@ -363,7 +363,7 @@ export function WebsiteCheckTool() {
           </header>
 
           <div className="audit-summary">
-            <strong>What this means</strong>
+            <strong>The short version</strong>
             <p>{report.summary}</p>
           </div>
 
