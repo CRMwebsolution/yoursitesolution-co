@@ -6,7 +6,12 @@ export type ToolsWorkflowResult = {
   ok: boolean;
   status: number;
   data: unknown;
-  error: "not-configured" | "timeout" | "request-failed" | null;
+  error:
+    | "not-configured"
+    | "timeout"
+    | "request-failed"
+    | "invalid-response"
+    | null;
 };
 
 function toolsWebhookUrl() {
@@ -68,8 +73,31 @@ export async function requestToolsWorkflow(
       try {
         data = JSON.parse(responseText) as unknown;
       } catch {
+        console.error(`Tools workflow "${tool}" returned non-JSON content.`, {
+          status: response.status,
+          contentType: response.headers.get("content-type"),
+          responseLength: responseText.length,
+        });
+
+        if (response.ok) {
+          return {
+            ok: false,
+            status: 502,
+            data: null,
+            error: "invalid-response",
+          };
+        }
+
         data = responseText;
       }
+    }
+
+    if (!response.ok) {
+      console.error(`Tools workflow "${tool}" returned an HTTP error.`, {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+        responseLength: responseText.length,
+      });
     }
 
     return {
@@ -91,4 +119,3 @@ export async function requestToolsWorkflow(
     clearTimeout(timeout);
   }
 }
-

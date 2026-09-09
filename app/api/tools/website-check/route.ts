@@ -88,6 +88,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (workflow.error === "invalid-response") {
+      return NextResponse.json(
+        {
+          error:
+            "The website check finished, but the result could not be read. Please try again shortly.",
+        },
+        { status: 502 },
+      );
+    }
+
     if (!workflow.ok || !workflow.data) {
       return NextResponse.json(
         {

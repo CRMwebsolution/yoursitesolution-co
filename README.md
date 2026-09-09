@@ -43,6 +43,12 @@ expressions such as `$json.body.url` and `$json.body.strategy`. New
 server-backed tool routes should call the shared helper in
 `lib/tools-workflow.ts` with their own registered tool slug.
 
+The Webhook trigger must use **Using Respond to Webhook Node**. At the end of
+each branch, configure **Respond to Webhook** with **Respond With: First
+Incoming Item**. The tools API expects a JSON object (a one-item JSON array is
+also supported). Do not use **Text** with `={{ $json }}` because an object can
+be returned as non-JSON text and cannot be decoded by the site.
+
 ## Content configuration
 
 Public business details, pricing, automation examples, and portfolio publishing
