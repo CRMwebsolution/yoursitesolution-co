@@ -317,26 +317,49 @@ function normalizeFindings(...values: unknown[]): AuditFinding[] {
 
 function generatedSummary(
   strategy: CheckStrategy,
-  performance: number | null,
+  scores: WebsiteCheckReport["scores"],
   fixFirst: AuditFinding[],
+  worthImproving: AuditFinding[],
 ) {
-  const device = strategy === "desktop" ? "desktop" : "mobile";
-  const priorities = fixFirst.length
-    ? ` The report found ${fixFirst.length} priorit${
-        fixFirst.length === 1 ? "y" : "ies"
-      } to review first.`
+  const device = strategy === "desktop" ? "computer" : "phone";
+  const performance = scores.performance;
+  const availableScores = Object.values(scores).filter(
+    (score): score is number => score !== null,
+  );
+  const allScoresStrong =
+    availableScores.length > 0 && availableScores.every((score) => score >= 90);
+  const improvementCount = worthImproving.length;
+  const improvementNote = improvementCount
+    ? ` The ${improvementCount === 1 ? "item" : `${improvementCount} items`} in “Worth improving” ${
+        improvementCount === 1 ? "is" : "are"
+      } a smaller improvement, not an emergency.`
     : "";
 
-  if (performance === null) {
-    return `The ${device} check finished. Use the measured details and findings below to decide what is worth addressing.${priorities}`;
+  if (allScoresStrong && !fixFirst.length) {
+    return `Good news: this website did very well in the ${device} test. It loaded quickly, and Google’s automated checks did not find any major problems.${improvementNote}`;
   }
-  if (performance >= 90) {
-    return `This run found strong ${device} performance. Check the other scores and findings before assuming the whole page is finished.${priorities}`;
+
+  if (fixFirst.length) {
+    const issueCount = `${fixFirst.length} important ${
+      fixFirst.length === 1 ? "issue" : "issues"
+    }`;
+
+    if (performance !== null && performance < 50) {
+      return `This website is likely to feel slow on a ${device}, which can make people leave before the page is ready. Google also found ${issueCount}. Start with “Fix these first” below.`;
+    }
+
+    return `The website works, but Google found ${issueCount} that could affect visitors. Start with “Fix these first” below; the other suggestions can wait.`;
   }
-  if (performance >= 50) {
-    return `The page loaded, but this ${device} run found performance that could make some visitors wait longer than they should.${priorities}`;
+
+  if (performance !== null && performance < 90) {
+    return `This website works, but some people may notice that it loads slowly on a ${device}. Nothing was flagged as urgent, so start with the suggestions under “Worth improving.”`;
   }
-  return `This ${device} run found slow performance that can get in the way before a visitor reaches the useful part of the page.${priorities}`;
+
+  if (performance !== null) {
+    return `This website loaded quickly on a ${device}. No major speed problem was found, but one or more of the other scores could still be improved.`;
+  }
+
+  return "Google finished the check and did not flag an urgent problem. Review the scores and suggestions below to see what could still be improved.";
 }
 
 function normalizeDate(...values: unknown[]) {
@@ -450,8 +473,6 @@ export function normalizeWebhookResponse(
   const explicitSummary = firstString(
     source.overallSummary,
     source.overall_summary,
-    source.reportText,
-    source.report_text,
     typeof source.summary === "string" ? source.summary : "",
   );
   const responseUrl = normalizePublicUrl(
@@ -470,7 +491,13 @@ export function normalizeWebhookResponse(
     ),
     strategy,
     summary:
-      explicitSummary || generatedSummary(strategy, performance, fixFirst),
+      explicitSummary ||
+      generatedSummary(
+        strategy,
+        { performance, accessibility, bestPractices, seo },
+        fixFirst,
+        worthImproving,
+      ),
     metrics,
     scores: { performance, accessibility, bestPractices, seo },
     fixFirst,
