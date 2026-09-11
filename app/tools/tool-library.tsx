@@ -9,14 +9,17 @@ import {
   Clock3,
   FileText,
   Gauge,
+  Globe,
   ImageIcon,
   Link2,
+  Link2Off,
   Mail,
   MapPinned,
   MessageSquareReply,
   QrCode,
   Search,
   Settings2,
+  Share2,
   Star,
   Tags,
   X,
@@ -42,6 +45,10 @@ const toolIcons: Partial<Record<ToolSlug, ToolIcon>> = {
   "lead-response": MessageSquareReply,
   "review-reply": Star,
   "automation-finder": Settings2,
+  "seo-check": Search,
+  "social-preview-check": Share2,
+  "broken-link-check": Link2Off,
+  "domain-health-check": Globe,
 };
 
 const categories = [

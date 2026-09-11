@@ -2,15 +2,20 @@
 
 The website has one private server-side connection to the shared n8n webhook.
 Browser requests never receive the webhook URL or bearer token. The n8n Webhook
-trigger should use **Using Respond to Webhook Node**, and every branch should end
-with **Respond to Webhook → First Incoming Item** so the response is JSON.
+trigger should use **Using Respond to Webhook Node**. Each successful branch
+returns one report item to the shared **Respond to Webhook → First Incoming
+Item** node with HTTP status **200**, so the response is JSON.
 
 ## Routing architecture
 
 Route the shared workflow with a Switch expression of
-`={{ $json.body.tool }}`. Give each tool its own output, then call a separate n8n
-sub-workflow for the tool-specific work. This keeps the entry workflow limited to
-authentication, routing, shared error handling, and the final response.
+`={{ $json.body.tool }}`. Give each tool its own output followed by its own named
+**Edit Fields** node. Keep every tool's nodes in this same workflow, grouped and
+named by branch; do not create sub-workflows. After routing, expressions must
+reference their source node by its exact name, not whichever item happens to be
+current. For example, an Edit Fields node directly after the node named `Switch`
+can read `={{ $('Switch').item.json.body.url }}`. Subsequent nodes reference that
+branch's named Edit Fields or validation node as appropriate.
 
 The website API, not the browser, supplies every `tool` value. The allowlist is in
 `lib/diagnostic-tools.ts`. A submitted `tool` field is ignored.
@@ -20,13 +25,15 @@ Current Switch output values:
 | Tool | Switch value | Public status |
 | --- | --- | --- |
 | PageSpeed website check | `website-check` | Connected |
-| SEO essentials check | `seo-check` | Website ready; n8n branch required |
-| Social sharing preview | `social-preview-check` | Website ready; n8n branch required |
-| Limited broken-link check | `broken-link-check` | Website ready; n8n branch required |
-| Domain and email health | `domain-health-check` | Website ready; n8n branch required |
+| SEO essentials check | `seo-check` | Connected; owner-confirmed |
+| Social sharing preview | `social-preview-check` | Connected; owner-confirmed |
+| Limited broken-link check | `broken-link-check` | Connected; owner-confirmed |
+| Domain and email health | `domain-health-check` | Connected; owner-confirmed |
 
-Do not expose the four setup-required tools in `publishedTools` until the matching
-branch returns a valid report in production.
+The site owner confirmed these four branches work before their hub entries and
+sitemap visibility were enabled. This publication change does not modify n8n or
+independently re-test its live execution. The existing tool order is unchanged
+pending owner approval. Keep future unconnected tools unpublished until verified.
 
 ## `website-check` (PageSpeed)
 
@@ -81,7 +88,7 @@ summary.
 
 ## Shared diagnostic response
 
-The four setup-required checkers use one response shape. Return a JSON object; a
+The four diagnostic checkers use one response shape. Return a JSON object; a
 one-item JSON array and common `report`, `data`, `result`, `output`, `body`, or
 `json` wrappers are tolerated.
 
@@ -167,7 +174,10 @@ Exact request sent by the website:
 }
 ```
 
-Return observed Open Graph and Twitter/X card values in `facts`. Also return:
+Return the metadata actually provided by the service in `facts`. Normalized
+metadata may fall back to ordinary page values; do not claim a dedicated Open
+Graph or Twitter/X tag is present or missing unless the service exposes that
+raw tag. Also return:
 
 ```json
 {
@@ -225,24 +235,26 @@ Exact request sent by the website:
 }
 ```
 
-Recommended public observations:
+The connected branch currently reads public DNS records:
 
-- HTTPS connection and certificate expiration date;
-- HTTP-to-HTTPS and `www`/apex redirect behavior;
+- public A (IPv4) and AAAA (IPv6) addresses;
 - public MX records;
 - SPF record presence and multiple-record conflicts;
-- DMARC record presence and published policy;
-- optional DKIM lookup only when the user supplies a selector in a future version.
+- DMARC record presence and published policy.
+
+It does not test DKIM, HTTPS/certificate expiration, website availability,
+redirects, email delivery, spam placement, or overall security. State that scope
+in the report disclaimer; a missing IPv6 record alone is not a website failure.
 
 Do not guess a DKIM selector, score deliverability, claim the domain is secure, or
 promise inbox placement. DNS-over-HTTPS providers such as Cloudflare or Google can
 perform public record lookups without a paid API; document any external endpoint
-inside the n8n sub-workflow.
+inside the relevant branch of the shared n8n workflow.
 
 ## Network safety for every branch
 
 The website rejects obvious local/private addresses before n8n is called. The n8n
-sub-workflow must independently validate every initial URL and redirect target,
+branch must independently validate every initial URL and redirect target,
 resolve hostnames, block loopback/private/link-local/reserved addresses, limit
 redirects, cap response bytes and execution time, and only accept HTTP or HTTPS.
 Never let a crawler follow a link into an internal network.

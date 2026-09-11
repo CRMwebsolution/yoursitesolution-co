@@ -6,7 +6,6 @@ export const metadata: Metadata = {
   title: "Limited broken-link checker",
   description: "Check a limited crawl of a public website for broken and redirected links.",
   alternates: { canonical: "/tools/broken-link-check" },
-  robots: { index: false, follow: true },
 };
 
 export default function BrokenLinkCheckPage() {
@@ -22,7 +21,6 @@ export default function BrokenLinkCheckPage() {
             inputTitle="Website starting page"
             inputHelp="Start at the homepage or the main page for the section you want checked."
             buttonLabel="Check the website links"
-            setupDescription="Add a Switch output where $json.body.tool equals broken-link-check. Enforce the server-supplied crawl limits and return the documented diagnostic JSON."
           />
         </div>
       </section>

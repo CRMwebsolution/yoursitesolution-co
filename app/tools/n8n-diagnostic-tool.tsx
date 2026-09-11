@@ -9,7 +9,6 @@ import {
   Info,
   LoaderCircle,
   Search,
-  Wrench,
 } from "lucide-react";
 import { BrowserToolHeader } from "./browser-tool-header";
 import type {
@@ -27,7 +26,6 @@ type N8nDiagnosticToolProps = {
   inputTitle: string;
   inputHelp: string;
   buttonLabel: string;
-  setupDescription: string;
 };
 
 const statusLabels: Record<DiagnosticStatus, string> = {
@@ -73,7 +71,6 @@ export function N8nDiagnosticTool({
   inputTitle,
   inputHelp,
   buttonLabel,
-  setupDescription,
 }: N8nDiagnosticToolProps) {
   const [url, setUrl] = useState("");
   const [companySite, setCompanySite] = useState("");
@@ -117,17 +114,8 @@ export function N8nDiagnosticTool({
         eyebrow={eyebrow}
         title={title}
         description={description}
-        note="Live check. When run, the public website address is sent through the private shared n8n workflow."
+        note="Live check. Your public website address is sent to an outside service to retrieve the results."
       />
-
-      <div className="diagnostic-setup-note">
-        <Wrench aria-hidden="true" />
-        <div>
-          <strong>Website interface ready — n8n Switch branch required</strong>
-          <p>{setupDescription}</p>
-          <code>{tool}</code>
-        </div>
-      </div>
 
       <form className="diagnostic-launch" onSubmit={submit}>
         <label>
