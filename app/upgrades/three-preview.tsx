@@ -13,9 +13,6 @@ type CanvasTex = {
   colorSpace?: unknown;
   anisotropy: number;
   needsUpdate: boolean;
-  wrapS?: unknown;
-  repeat: { set: (x: number, y: number) => void };
-  offset: { set: (x: number, y: number) => void };
   dispose: () => void;
 };
 
@@ -53,7 +50,6 @@ type ThreeLib = {
   };
   Mesh: new (geometry: unknown, material: unknown) => MeshObj;
   CanvasTexture: new (canvas: HTMLCanvasElement) => CanvasTex;
-  RepeatWrapping?: unknown;
   SRGBColorSpace?: unknown;
   AmbientLight: new (color: number, intensity: number) => unknown;
   HemisphereLight: new (
@@ -144,7 +140,6 @@ function makeNameFace() {
   ctx.letterSpacing = "2px";
   ctx.font = "600 92px Georgia, 'Times New Roman', serif";
   ctx.fillText("YOUR SITE", 512, 430);
-  ctx.font = "600 92px Georgia, 'Times New Roman', serif";
   ctx.fillText("SOLUTION", 512, 560);
   ctx.fillStyle = "rgba(196, 92, 38, 0.9)";
   ctx.fillRect(362, 630, 300, 4);
@@ -202,21 +197,16 @@ export function ThreePreview() {
         renderer.setClearColor(0x000000, 0);
         mount.appendChild(renderer.domElement);
 
-        const prepareMap = (canvas: HTMLCanvasElement, flipX = false) => {
+        const prepareMap = (canvas: HTMLCanvasElement) => {
           const map = new THREE.CanvasTexture(canvas);
           if (THREE.SRGBColorSpace) map.colorSpace = THREE.SRGBColorSpace;
           map.anisotropy = 8;
-          if (flipX && THREE.RepeatWrapping) {
-            map.wrapS = THREE.RepeatWrapping;
-            map.repeat.set(-1, 1);
-            map.offset.set(1, 0);
-          }
           map.needsUpdate = true;
           return map;
         };
 
         const faceMap = prepareMap(makePlateFace());
-        const nameMap = prepareMap(makeNameFace(), true);
+        const nameMap = prepareMap(makeNameFace());
         const edgeMap = prepareMap(makeEdgeFace());
 
         const faceMat = new THREE.MeshStandardMaterial({
@@ -236,17 +226,20 @@ export function ThreePreview() {
         });
 
         const plateGeo = new THREE.BoxGeometry(1.7, 1.7, 0.22);
-        const plate = new THREE.Mesh(plateGeo, [
-          edgeMat,
-          edgeMat,
-          edgeMat,
-          edgeMat,
-          faceMat,
-          nameMat,
-        ]);
+        const labelGeo = new THREE.PlaneGeometry(1.7, 1.7);
+        const plate = new THREE.Mesh(plateGeo, edgeMat);
+
+        const front = new THREE.Mesh(labelGeo, faceMat);
+        front.position.set(0, 0, 0.112);
+
+        const back = new THREE.Mesh(labelGeo, nameMat);
+        back.position.set(0, 0, -0.112);
+        back.rotation.y = Math.PI;
 
         const group = new THREE.Group();
         group.add(plate);
+        group.add(front);
+        group.add(back);
         scene.add(group);
 
         scene.add(new THREE.HemisphereLight(0xf4efe6, 0x1a1c19, 1.05));
@@ -341,6 +334,7 @@ export function ThreePreview() {
           nameMat.dispose();
           edgeMat.dispose();
           plateGeo.dispose();
+          labelGeo.dispose();
           renderer.dispose();
           if (renderer.domElement.parentNode) {
             renderer.domElement.parentNode.removeChild(renderer.domElement);
