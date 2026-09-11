@@ -273,3 +273,15 @@ h3,
   background: #17382c;
   color: var(--copper);
 }
+
+.lang-toggle {
+  border: 1px solid rgba(31, 74, 58, 0.2);
+  background: transparent;
+  color: var(--pine);
+  min-width: 2.4rem;
+  height: 2.2rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
