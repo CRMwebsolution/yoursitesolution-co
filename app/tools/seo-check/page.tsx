@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { CtaBanner } from "@/components/cta-banner";
+import { getTool } from "@/config/tools";
 import { N8nDiagnosticTool } from "../n8n-diagnostic-tool";
+
+const tool = getTool("seo-check");
 
 export const metadata: Metadata = {
   title: "Website SEO essentials check",
-  description: "Check the public page information that search engines rely on.",
+  description: tool.hero,
   alternates: { canonical: "/tools/seo-check" },
 };
 
@@ -17,7 +20,7 @@ export default function SeoCheckPage() {
             tool="seo-check"
             eyebrow="Website SEO essentials check"
             title={<>See what the page tells <em>search engines and customers.</em></>}
-            description="Check one public page for selected search essentials, such as a page title, description, crawlable links, and indexing instructions. See the issues the automated check found and what to review next."
+            description={tool.hero}
             inputTitle="Public page to inspect"
             inputHelp="This checks one page, not every page on the domain."
             buttonLabel="Run the SEO essentials check"
