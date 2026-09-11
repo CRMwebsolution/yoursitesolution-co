@@ -3,117 +3,283 @@ export const tools = [
     slug: "website-check",
     href: "/tools/website-check",
     number: "01",
-    name: "Website check",
+    name: "PageSpeed website check",
     summary:
-      "Paste a URL. Get speed scores plus a plain-English read on whether a customer can actually reach you.",
-    action: "Check a website",
+      "Test a public page on mobile or desktop. See Google PageSpeed scores, measurements, and the fixes worth looking at first.",
+    action: "Run the website check",
+    output: "Google data + plain-English priorities",
+    category: "Website performance",
+    featured: true,
+    mode: "live",
+    published: true,
+  },
+  {
+    slug: "search-preview",
+    href: "/tools/search-preview",
+    number: "02",
+    name: "Google search preview",
+    summary:
+      "Draft a page title, description, and main heading—then see how the listing may look before you publish it.",
+    action: "Build a search listing",
+    output: "Title, description, H1 + live preview",
+    category: "Website SEO",
+    featured: false,
+    mode: "browser",
+    published: true,
   },
   {
     slug: "review-text",
     href: "/tools/review-text",
-    number: "02",
-    name: "Review request text",
+    number: "03",
+    name: "Review request kit",
     summary:
-      "Write a short message you can send after a job. No login. Copy it and send it.",
-    action: "Write a review text",
+      "Turn a few job details into a same-day text, a polite follow-up, and an email asking for an honest review.",
+    action: "Write the messages",
+    output: "SMS, follow-up + email",
+    category: "Customer trust",
+    featured: false,
+    mode: "browser",
+    published: true,
   },
   {
     slug: "time-check",
     href: "/tools/time-check",
-    number: "03",
-    name: "Busywork check",
+    number: "04",
+    name: "Repetitive-task cost calculator",
     summary:
-      "Answer a few yes/no questions about repeat office work. See whether automation is even worth talking about.",
-    action: "Check the busywork",
+      "Put a real number on one repeated office task using its frequency, duration, and the value of the time it consumes.",
+    action: "Calculate the task cost",
+    output: "Monthly and yearly time + cost",
+    category: "Business automation",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "qr-code",
+    href: "/tools/qr-code",
+    number: "05",
+    name: "QR code generator",
+    summary:
+      "Turn a website, review page, payment link, phone number, or short message into a downloadable QR code.",
+    action: "Make a QR code",
+    output: "Downloadable PNG + encoded content",
+    category: "Marketing links",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "utm-builder",
+    href: "/tools/utm-builder",
+    number: "06",
+    name: "Campaign link builder",
+    summary:
+      "Add clean campaign tags to a link so analytics can separate traffic from flyers, email, social posts, and ads.",
+    action: "Build a tracked link",
+    output: "Tagged URL + parameter summary",
+    category: "Marketing links",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "contact-links",
+    href: "/tools/contact-links",
+    number: "07",
+    name: "Call, text & email link builder",
+    summary:
+      "Create tap-to-call, prefilled text-message, and ready-to-email links for a website, QR code, or digital flyer.",
+    action: "Build contact links",
+    output: "Working links + HTML snippets",
+    category: "Customer communication",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "email-signature",
+    href: "/tools/email-signature",
+    number: "08",
+    name: "Email signature builder",
+    summary:
+      "Build a clean business email signature with clickable contact details and no image-hosting headache.",
+    action: "Build a signature",
+    output: "Visual signature + email-ready copy",
+    category: "Customer communication",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "contrast-checker",
+    href: "/tools/contrast-checker",
+    number: "09",
+    name: "Color contrast checker",
+    summary:
+      "Check whether one text-and-background color pair meets common WCAG contrast thresholds.",
+    action: "Check two colors",
+    output: "Contrast ratio + pass/fail thresholds",
+    category: "Website accessibility",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "image-optimizer",
+    href: "/tools/image-optimizer",
+    number: "10",
+    name: "Website image optimizer",
+    summary:
+      "Resize and compress a website photo on your device, compare the file size, and download the smaller version.",
+    action: "Optimize an image",
+    output: "Resized image + real size comparison",
+    category: "Website performance",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "local-schema",
+    href: "/tools/local-schema",
+    number: "11",
+    name: "Local Business schema builder",
+    summary:
+      "Turn accurate business details into JSON-LD code that helps search engines understand the organization.",
+    action: "Build business schema",
+    output: "Copy-ready LocalBusiness JSON-LD",
+    category: "Website SEO",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "website-brief",
+    href: "/tools/website-brief",
+    number: "12",
+    name: "Website project brief builder",
+    summary:
+      "Organize the business, audience, pages, goals, and missing information into one useful website brief.",
+    action: "Build a website brief",
+    output: "Structured brief + missing-information list",
+    category: "Website planning",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "copy-clarity",
+    href: "/tools/copy-clarity",
+    number: "13",
+    name: "Website copy clarity check",
+    summary:
+      "Paste website wording and find long sentences, dense paragraphs, vague phrases, and missing next steps—without a fake grade.",
+    action: "Check my wording",
+    output: "Measured facts + specific editing actions",
+    category: "Website copy",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "lead-response",
+    href: "/tools/lead-response",
+    number: "14",
+    name: "New lead response kit",
+    summary:
+      "Create an immediate text, after-hours reply, email, and polite follow-up for a new customer inquiry.",
+    action: "Write the responses",
+    output: "Four ready-to-use messages",
+    category: "Customer communication",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "review-reply",
+    href: "/tools/review-reply",
+    number: "15",
+    name: "Customer review reply writer",
+    summary:
+      "Turn verified details into a professional public response to a positive, mixed, or negative customer review.",
+    action: "Write a review reply",
+    output: "Short + full response drafts",
+    category: "Customer trust",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "automation-finder",
+    href: "/tools/automation-finder",
+    number: "16",
+    name: "Automation opportunity finder",
+    summary:
+      "Choose the repetitive handoffs slowing the business down and build a practical trigger, action, human-checkpoint, and test plan.",
+    action: "Find useful automations",
+    output: "Prioritized implementation outline",
+    category: "Business automation",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
+    slug: "seo-check",
+    href: "/tools/seo-check",
+    number: "17",
+    name: "Website SEO essentials check",
+    summary: "Check the page information search engines rely on.",
+    action: "Run the SEO check",
+    output: "Search essentials + recommended fixes",
+    category: "Website SEO",
+    featured: false,
+    mode: "n8n",
+    published: false,
+  },
+  {
+    slug: "social-preview-check",
+    href: "/tools/social-preview-check",
+    number: "18",
+    name: "Social sharing preview check",
+    summary: "Inspect the title, description, and image a shared link provides.",
+    action: "Check a shared link",
+    output: "Share preview + missing-tag warnings",
+    category: "Marketing links",
+    featured: false,
+    mode: "n8n",
+    published: false,
+  },
+  {
+    slug: "broken-link-check",
+    href: "/tools/broken-link-check",
+    number: "19",
+    name: "Broken link checker",
+    summary: "Find broken and redirected links within a limited website crawl.",
+    action: "Check the links",
+    output: "Working, redirected + broken links",
+    category: "Website health",
+    featured: false,
+    mode: "n8n",
+    published: false,
+  },
+  {
+    slug: "domain-health-check",
+    href: "/tools/domain-health-check",
+    number: "20",
+    name: "Domain and email health check",
+    summary: "Inspect HTTPS, redirects, mail routing, SPF, and DMARC records.",
+    action: "Check the domain",
+    output: "Domain, HTTPS + email record findings",
+    category: "Website health",
+    featured: false,
+    mode: "n8n",
+    published: false,
   },
 ] as const;
 
-export const reviewTrades = [
-  "General service",
-  "Mechanic / auto repair",
-  "Plumbing",
-  "Electrical",
-  "HVAC",
-  "Carpentry / remodeling",
-  "Lawn / landscaping",
-  "Cleaning",
-  "Hotel / lodging",
-  "Other local business",
-] as const;
+export type ToolSlug = (typeof tools)[number]["slug"];
 
-export const reviewJobs = [
-  "a service call",
-  "a repair",
-  "an install",
-  "a quote visit",
-  "a completed project",
-  "a stay",
-] as const;
-
-export function buildReviewText(input: {
-  ownerName: string;
-  businessName: string;
-  customerName: string;
-  trade: string;
-  job: string;
-  reviewLink: string;
-}) {
-  const owner = input.ownerName.trim() || "I";
-  const customer = input.customerName.trim() || "there";
-  const business = input.businessName.trim();
-  const from = business ? ` — ${business}` : "";
-  const link = input.reviewLink.trim();
-  const closer = link
-    ? ` If it looked right, a quick Google review helps more than anything. ${link}`
-    : " If it looked right, a quick Google review helps more than anything.";
-
-  return `Hey ${customer}, thanks for having ${owner === "I" ? "me" : owner} out for ${input.job} today.${closer}${from}`;
-}
-
-export const timeQuestions = [
-  {
-    id: "forms",
-    label: "Form follow-up",
-    prompt: "Do you copy website form submissions into email, a spreadsheet, or a notebook by hand?",
-  },
-  {
-    id: "invoices",
-    label: "Invoices",
-    prompt: "Do you type the same customer and job details into an invoice after you already wrote them somewhere else?",
-  },
-  {
-    id: "calendar",
-    label: "Calendar",
-    prompt: "Do accepted jobs get added to a calendar by hand?",
-  },
-  {
-    id: "reminders",
-    label: "Reminders",
-    prompt: "Do customers wait until you personally remember to confirm an appointment or send a reminder?",
-  },
-  {
-    id: "reviews",
-    label: "Reviews",
-    prompt: "Do you forget to ask for a review unless you happen to think of it after the job?",
-  },
-] as const;
-
-export function scoreBusywork(answers: Record<string, boolean>) {
-  const yes = timeQuestions.filter((question) => answers[question.id]).length;
-  const hours = yes * 1.5;
-  let headline = "Not much to automate yet.";
-  let detail =
-    "If the office work is already light, a website that makes the next call easier may be the better first step.";
-
-  if (yes >= 4) {
-    headline = "This is eating real hours.";
-    detail =
-      "Several of these tasks are the same motion every week. That is the kind of work worth connecting once instead of repeating.";
-  } else if (yes >= 2) {
-    headline = "There is enough repeat work to look at.";
-    detail =
-      "You do not need a giant system. One or two handoffs—form to inbox, job to invoice, job to calendar—usually pay for themselves.";
-  }
-
-  return { yes, hours, headline, detail };
-}
+export const publishedTools = tools.filter((tool) => tool.published);
+export const pendingN8nTools = tools.filter(
+  (tool) => tool.mode === "n8n" && !tool.published,
+);

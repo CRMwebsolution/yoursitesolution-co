@@ -10,7 +10,7 @@ export type AuditFinding = {
 export type WebsiteCheckReport = {
   url: string;
   testedAt: string;
-  strategy: string;
+  strategy: CheckStrategy;
   summary: string;
   metrics: string[];
   scores: {
@@ -25,18 +25,30 @@ export type WebsiteCheckReport = {
   disclaimer: string;
 };
 
-export type WebsiteCheckResult = WebsiteCheckReport;
-
 type JsonRecord = Record<string, unknown>;
 
+const REPORT_KEYS = [
+  "scores",
+  "performance",
+  "overallPerformance",
+  "metrics",
+  "summary",
+  "fixFirst",
+  "criticalIssues",
+  "opportunities",
+] as const;
+
 export function normalizeStrategy(value: unknown): CheckStrategy {
-  return value === "desktop" ? "desktop" : "mobile";
+  return typeof value === "string" && value.toLowerCase() === "desktop"
+    ? "desktop"
+    : "mobile";
 }
 
 export function normalizePublicUrl(value: unknown) {
   if (typeof value !== "string" || !value.trim() || value.length > 2048) {
     return null;
   }
+
   const trimmed = value.trim();
   const withProtocol = /^https?:\/\//i.test(trimmed)
     ? trimmed
@@ -59,6 +71,7 @@ export function normalizePublicUrl(value: unknown) {
       hostname.startsWith("fc") ||
       hostname.startsWith("fd") ||
       hostname.startsWith("fe80:");
+
     if (
       !hostname ||
       blockedHost ||
@@ -68,6 +81,7 @@ export function normalizePublicUrl(value: unknown) {
     ) {
       return null;
     }
+
     url.username = "";
     url.password = "";
     url.hash = "";
@@ -85,39 +99,175 @@ function asRecord(value: unknown): JsonRecord {
 
 function firstString(...values: unknown[]) {
   for (const value of values) {
-    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "string" && value.trim()) {
+      return value.trim().slice(0, 4000);
+    }
   }
   return "";
 }
 
-function asStringList(value: unknown) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
-    .map((item) => item.trim());
+function parseJson(value: string) {
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return null;
+  }
 }
 
-function normalizeScore(...values: unknown[]): number | null {
+function looksLikeReport(value: JsonRecord) {
+  return REPORT_KEYS.some((key) => key in value);
+}
+
+function unwrapWebhookResponse(value: unknown): JsonRecord {
+  let current = value;
+
+  for (let depth = 0; depth < 6; depth += 1) {
+    if (typeof current === "string") {
+      const parsed = parseJson(current);
+      if (parsed === null) return {};
+      current = parsed;
+      continue;
+    }
+
+    if (Array.isArray(current)) {
+      current = current[0];
+      continue;
+    }
+
+    const record = asRecord(current);
+    if (!Object.keys(record).length) return {};
+
+    // Some workflows add a status summary beside the actual nested report.
+    // Prefer an explicit report wrapper before treating that status as content.
+    const explicitReport = record.report;
+    if (
+      (Array.isArray(explicitReport) && explicitReport.length > 0) ||
+      (typeof explicitReport === "string" && explicitReport.trim()) ||
+      Object.keys(asRecord(explicitReport)).length > 0
+    ) {
+      current = explicitReport;
+      continue;
+    }
+
+    const nestedReport = [
+      record.data,
+      record.result,
+      record.output,
+      record.body,
+      record.json,
+    ].find((candidate) => {
+      const unwrapped = Array.isArray(candidate) ? candidate[0] : candidate;
+      const parsed =
+        typeof unwrapped === "string" ? parseJson(unwrapped) : unwrapped;
+      return looksLikeReport(asRecord(parsed));
+    });
+
+    if (nestedReport !== undefined) {
+      current = nestedReport;
+      continue;
+    }
+
+    if (looksLikeReport(record)) return record;
+
+    const next = [
+      record.data,
+      record.result,
+      record.output,
+      record.body,
+      record.json,
+    ].find((candidate) => {
+      if (Array.isArray(candidate)) return candidate.length > 0;
+      if (typeof candidate === "string") return Boolean(candidate.trim());
+      return Object.keys(asRecord(candidate)).length > 0;
+    });
+
+    if (next === undefined) return record;
+    current = next;
+  }
+
+  return asRecord(current);
+}
+
+function normalizeScoreValue(value: unknown): number | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = asRecord(value);
+    return normalizeScoreValue(
+      record.score ?? record.value ?? record.numericValue ?? record.numeric_value,
+    );
+  }
+
+  const isPercent = typeof value === "string" && value.includes("%");
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && /^\s*\d+(?:\.\d+)?%?\s*$/.test(value)
+        ? Number.parseFloat(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(parsed)) return null;
+  const score = !isPercent && parsed >= 0 && parsed <= 1 ? parsed * 100 : parsed;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function scoreFromList(value: unknown, ids: string[]) {
+  if (!Array.isArray(value)) return null;
+  const wanted = ids.map((id) => id.toLowerCase().replace(/[_\s]/g, "-"));
+
+  for (const entry of value) {
+    const item = asRecord(entry);
+    const id = firstString(item.id, item.key, item.name, item.label)
+      .toLowerCase()
+      .replace(/[_\s]/g, "-");
+    if (wanted.includes(id)) {
+      return normalizeScoreValue(item.score ?? item.value ?? item.numericValue);
+    }
+  }
+
+  return null;
+}
+
+function firstScore(...values: unknown[]) {
   for (const value of values) {
-    const parsed =
-      typeof value === "number"
-        ? value
-        : typeof value === "string"
-          ? Number(value)
-          : Number.NaN;
-    if (!Number.isFinite(parsed)) continue;
-    const score = parsed >= 0 && parsed <= 1 ? parsed * 100 : parsed;
-    return Math.max(0, Math.min(100, Math.round(score)));
+    const score = normalizeScoreValue(value);
+    if (score !== null) return score;
   }
   return null;
 }
 
-function normalizeFindings(value: unknown): AuditFinding[] {
+function normalizeStringList(...values: unknown[]) {
+  for (const value of values) {
+    if (!Array.isArray(value)) continue;
+
+    const items = value.flatMap((entry) => {
+      if (typeof entry === "string" && entry.trim()) return [entry.trim()];
+      const item = asRecord(entry);
+      const label = firstString(item.label, item.name, item.title, item.metric);
+      const metricValue = firstString(
+        item.displayValue,
+        item.display_value,
+        item.value,
+      );
+      if (label && metricValue) return [`${label}: ${metricValue}`];
+      return label ? [label] : [];
+    });
+
+    if (items.length) return [...new Set(items)].slice(0, 30);
+  }
+
+  return [];
+}
+
+function normalizeFindings(...values: unknown[]): AuditFinding[] {
+  const value = values.find(
+    (candidate) => Array.isArray(candidate) && candidate.length > 0,
+  );
   if (!Array.isArray(value)) return [];
-  return value.flatMap((entry) => {
+
+  const findings = value.flatMap((entry) => {
     if (typeof entry === "string" && entry.trim()) {
       return [{ title: entry.trim() }];
     }
+
     const item = asRecord(entry);
     const title = firstString(item.title, item.heading, item.name, item.issue);
     const explanation = firstString(
@@ -127,17 +277,23 @@ function normalizeFindings(value: unknown): AuditFinding[] {
       item.message,
     );
     if (!title && !explanation) return [];
+
     const businessImpact = firstString(
       item.businessImpact,
       item.business_impact,
       item.impact,
+      item.whyItMatters,
+      item.why_it_matters,
     );
     const recommendation = firstString(
       item.recommendation,
       item.suggestedFix,
       item.suggested_fix,
       item.fix,
+      item.whatCanHelp,
+      item.what_can_help,
     );
+
     return [
       {
         title: title || explanation,
@@ -147,13 +303,72 @@ function normalizeFindings(value: unknown): AuditFinding[] {
       },
     ];
   });
+
+  return findings
+    .filter(
+      (finding, index, all) =>
+        all.findIndex(
+          (candidate) =>
+            candidate.title.toLowerCase() === finding.title.toLowerCase(),
+        ) === index,
+    )
+    .slice(0, 20);
 }
 
-function unwrapWebhookResponse(value: unknown): JsonRecord {
-  const first = Array.isArray(value) ? value[0] : value;
-  const outer = asRecord(first);
-  const report = asRecord(outer.report);
-  return report.url || report.scores ? report : outer;
+function generatedSummary(
+  strategy: CheckStrategy,
+  scores: WebsiteCheckReport["scores"],
+  fixFirst: AuditFinding[],
+  worthImproving: AuditFinding[],
+) {
+  const device = strategy === "desktop" ? "computer" : "phone";
+  const performance = scores.performance;
+  const availableScores = Object.values(scores).filter(
+    (score): score is number => score !== null,
+  );
+  const allScoresStrong =
+    availableScores.length > 0 && availableScores.every((score) => score >= 90);
+  const improvementCount = worthImproving.length;
+  const improvementNote = improvementCount
+    ? ` The ${improvementCount === 1 ? "item" : `${improvementCount} items`} in “Worth improving” ${
+        improvementCount === 1 ? "is" : "are"
+      } a smaller improvement, not an emergency.`
+    : "";
+
+  if (allScoresStrong && !fixFirst.length) {
+    return `Good news: this website did very well in the ${device} test. It loaded quickly, and Google’s automated checks did not find any major problems.${improvementNote}`;
+  }
+
+  if (fixFirst.length) {
+    const issueCount = `${fixFirst.length} important ${
+      fixFirst.length === 1 ? "issue" : "issues"
+    }`;
+
+    if (performance !== null && performance < 50) {
+      return `This website is likely to feel slow on a ${device}, which can make people leave before the page is ready. Google also found ${issueCount}. Start with “Fix these first” below.`;
+    }
+
+    return `The website works, but Google found ${issueCount} that could affect visitors. Start with “Fix these first” below; the other suggestions can wait.`;
+  }
+
+  if (performance !== null && performance < 90) {
+    return `This website works, but some people may notice that it loads slowly on a ${device}. Nothing was flagged as urgent, so start with the suggestions under “Worth improving.”`;
+  }
+
+  if (performance !== null) {
+    return `This website loaded quickly on a ${device}. No major speed problem was found, but one or more of the other scores could still be improved.`;
+  }
+
+  return "Google finished the check and did not flag an urgent problem. Review the scores and suggestions below to see what could still be improved.";
+}
+
+function normalizeDate(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value !== "string" || !value.trim()) continue;
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  }
+  return new Date().toISOString();
 }
 
 export function normalizeWebhookResponse(
@@ -163,46 +378,90 @@ export function normalizeWebhookResponse(
 ): WebsiteCheckReport {
   const source = unwrapWebhookResponse(value);
   const scores = asRecord(source.scores);
-  const performance = normalizeScore(
+  const categories = asRecord(source.categories);
+  const lighthouse = asRecord(source.lighthouseResult ?? source.lighthouse_result);
+  const lighthouseCategories = asRecord(lighthouse.categories);
+
+  const performance = firstScore(
     scores.performance,
     source.performance,
+    source.performanceScore,
+    source.performance_score,
     source.overallPerformance,
     source.overall_performance,
+    categories.performance,
+    lighthouseCategories.performance,
+    scoreFromList(source.scores, ["performance", "speed"]),
   );
-  const accessibility = normalizeScore(scores.accessibility, source.accessibility);
-  const bestPractices = normalizeScore(
+  const accessibility = firstScore(
+    scores.accessibility,
+    source.accessibility,
+    source.accessibilityScore,
+    source.accessibility_score,
+    categories.accessibility,
+    lighthouseCategories.accessibility,
+    scoreFromList(source.scores, ["accessibility"]),
+  );
+  const bestPractices = firstScore(
     scores.bestPractices,
     scores.best_practices,
+    scores["best-practices"],
     source.bestPractices,
     source.best_practices,
+    source.bestPracticesScore,
+    source.best_practices_score,
+    categories.bestPractices,
+    categories.best_practices,
+    categories["best-practices"],
+    lighthouseCategories["best-practices"],
+    scoreFromList(source.scores, ["best-practices", "best practices"]),
   );
-  const seo = normalizeScore(scores.seo, source.seo);
-  const summaryList = asStringList(source.summary);
-  const summary =
-    firstString(
-      source.overallSummary,
-      source.overall_summary,
-      source.report_text,
-      typeof source.summary === "string" ? source.summary : "",
-    ) ||
-    (summaryList.length
-      ? summaryList.join(" ")
-      : "Your website check finished. Review the scores and findings below.");
+  const seo = firstScore(
+    scores.seo,
+    source.seo,
+    source.seoScore,
+    source.seo_score,
+    categories.seo,
+    lighthouseCategories.seo,
+    scoreFromList(source.scores, ["seo", "seo-basics"]),
+  );
+
+  const metrics = normalizeStringList(
+    source.metrics,
+    source.keyMetrics,
+    source.key_metrics,
+    Array.isArray(source.summary) ? source.summary : null,
+  );
   const fixFirst = normalizeFindings(
-    source.fixFirst ??
-      source.fix_first ??
-      source.criticalIssues ??
-      source.critical_issues,
+    source.fixFirst,
+    source.fix_first,
+    source.criticalIssues,
+    source.critical_issues,
+    source.verifiedIssues,
+    source.verified_issues,
+    source.issues,
   );
   const worthImproving = normalizeFindings(
-    source.worthImproving ?? source.worth_improving ?? source.opportunities,
+    source.worthImproving,
+    source.worth_improving,
+    source.opportunities,
+    source.verifiedOpportunities,
+    source.verified_opportunities,
   );
   const doingWell = normalizeFindings(
-    source.doingWell ?? source.doing_well ?? source.goodThings ?? source.good_things,
+    source.doingWell,
+    source.doing_well,
+    source.goodThings,
+    source.good_things,
+    source.passedAudits,
+    source.passed_audits,
   );
 
   if (
-    [performance, accessibility, bestPractices, seo].every((score) => score === null) &&
+    [performance, accessibility, bestPractices, seo].every(
+      (score) => score === null,
+    ) &&
+    !metrics.length &&
     !fixFirst.length &&
     !worthImproving.length &&
     !doingWell.length
@@ -210,22 +469,42 @@ export function normalizeWebhookResponse(
     throw new Error("The analysis service returned an incomplete report.");
   }
 
+  const strategy = normalizeStrategy(source.strategy || requestedStrategy);
+  const explicitSummary = firstString(
+    source.overallSummary,
+    source.overall_summary,
+    typeof source.summary === "string" ? source.summary : "",
+  );
+  const responseUrl = normalizePublicUrl(
+    firstString(source.url, source.finalUrl, source.final_url),
+  );
+
   return {
-    url: firstString(source.url, source.finalUrl, source.final_url) || requestedUrl,
-    testedAt:
-      firstString(source.testedAt, source.tested_at, source.analyzed_at) ||
-      new Date().toISOString(),
-    strategy: firstString(source.strategy) || requestedStrategy,
-    summary,
-    metrics: asStringList(source.metrics).length
-      ? asStringList(source.metrics)
-      : summaryList,
+    url: responseUrl || requestedUrl,
+    testedAt: normalizeDate(
+      source.testedAt,
+      source.tested_at,
+      source.analyzedAt,
+      source.analyzed_at,
+      source.generatedAt,
+      source.generated_at,
+    ),
+    strategy,
+    summary:
+      explicitSummary ||
+      generatedSummary(
+        strategy,
+        { performance, accessibility, bestPractices, seo },
+        fixFirst,
+        worthImproving,
+      ),
+    metrics,
     scores: { performance, accessibility, bestPractices, seo },
     fixFirst,
     worthImproving,
     doingWell,
     disclaimer:
       firstString(source.disclaimer) ||
-      "This report is a snapshot. Scores can change as internet, server, and website conditions change.",
+      "This automated report is a snapshot. PageSpeed results can move between runs as network, server, and website conditions change.",
   };
 }

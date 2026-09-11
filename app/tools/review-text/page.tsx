@@ -1,30 +1,27 @@
 import type { Metadata } from "next";
-import { PageHero } from "@/components/page-hero";
-import { ReviewTextTool } from "./review-text-tool";
+import { CtaBanner } from "@/components/cta-banner";
+import { ReviewRequestTool } from "./review-request-tool";
 
 export const metadata: Metadata = {
-  title: "Review request text",
+  title: "Free review request message kit",
   description:
-    "Generate a short text you can send after a job to ask for a Google review.",
+    "Write a same-day text, polite follow-up, and email that asks a real customer for an honest Google review.",
+  alternates: { canonical: "/tools/review-text" },
 };
 
-export default function ReviewTextPage() {
+export default function ReviewRequestPage() {
   return (
     <main id="main-content">
-      <PageHero
-        eyebrow="Free tool"
-        title={
-          <>
-            Ask for the review <em>the same day.</em>
-          </>
-        }
-        description="Most people will write a review if you ask while the work is still fresh. This writes a short text you can copy and send."
-      />
-      <section className="section">
-        <div className="shell tool-page">
-          <ReviewTextTool />
+      <section className="utility-workbench section-dark">
+        <div className="shell">
+          <ReviewRequestTool />
         </div>
       </section>
+      <CtaBanner
+        eyebrow="Want the follow-up handled?"
+        title="A simple system can ask after every completed job."
+        text="If the same customer details already pass through a form, calendar, or invoice, I can help connect the handoff."
+      />
     </main>
   );
 }

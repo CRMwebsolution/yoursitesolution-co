@@ -1,27 +1,27 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { PageHero } from "@/components/page-hero";
-import { tools } from "@/config/tools";
+import { ToolLibrary } from "./tool-library";
 
 export const metadata: Metadata = {
-  title: "Free website tools",
+  title: "Free small-business tools",
   description:
-    "Free tools for small-business websites: a speed and contact check, a review-request text, and a busywork check.",
+    "Free practical tools for websites, marketing links, customer communication, search visibility, images, and business planning.",
+  alternates: { canonical: "/tools" },
 };
 
 export default function ToolsPage() {
   return (
     <main id="main-content">
       <PageHero
-        eyebrow="Free tools"
+        eyebrow="Free small-business tools"
         title={
           <>
-            Useful checks. <em>No login.</em>
+            Get something useful. <em>Before we ever talk.</em>
           </>
         }
-        description="These are simple tools for a business that already has a website—or is trying to get more from the one it has. Use them, then tell me if you want the underlying problem fixed."
+        description="Check a website, build useful links, improve customer messages, prepare images, and organize the information a business needs online. Use any tool without an account or email wall."
         aside={
           <div className="hero-aside-stack">
             <p>
@@ -36,25 +36,39 @@ export default function ToolsPage() {
         }
       />
 
-      <section className="section">
-        <div className="shell tool-index-grid">
-          {tools.map((tool) => (
-            <article key={tool.slug} className="service-panel">
-              <div className="service-number">{tool.number}</div>
-              <h3>{tool.name}</h3>
-              <p>{tool.summary}</p>
-              <Link className="text-link" href={tool.href}>
-                {tool.action} <ArrowRight aria-hidden="true" />
-              </Link>
-            </article>
-          ))}
+      <section className="section tool-library-section">
+        <div className="shell">
+          <div className="tool-library-heading">
+            <div>
+              <p className="eyebrow">Choose a tool</p>
+              <h2>Useful output. No filler.</h2>
+            </div>
+            <p>
+              Search by the problem you are trying to solve. Most tools run
+              entirely on your device; live website checks clearly say when
+              they contact an outside service.
+            </p>
+          </div>
+
+          <ToolLibrary />
+
+          <div className="tool-trust-note">
+            <ShieldCheck aria-hidden="true" />
+            <div>
+              <strong>No results held hostage.</strong>
+              <p>
+                Use the tool first. Contact details only appear if you decide
+                to ask for help afterward.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       <CtaBanner
-        eyebrow="The tool is the start"
-        title="If the check shows a problem, I can build the fix."
-        text="A basic website starts at $300. A 3–5 page site starts at $750. You approve the preview before you pay."
+        eyebrow="Found something worth fixing?"
+        title="Use the result yourself—or ask me to help with the next step."
+        text="I’ll give you a straight answer about what matters, what can wait, and what a practical fix would cost."
       />
     </main>
   );

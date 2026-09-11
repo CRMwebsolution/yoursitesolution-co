@@ -1,30 +1,27 @@
 import type { Metadata } from "next";
-import { PageHero } from "@/components/page-hero";
+import { CtaBanner } from "@/components/cta-banner";
 import { WebsiteCheckTool } from "./website-check-tool";
 
 export const metadata: Metadata = {
-  title: "Website check",
+  title: "Free PageSpeed website check",
   description:
-    "Free website check for small businesses. Choose mobile or desktop, then see speed scores and whether customers can reach you from the homepage.",
+    "Run a free mobile or desktop Google PageSpeed check and get the scores, measurements, and priorities in plain English.",
+  alternates: { canonical: "/tools/website-check" },
 };
 
 export default function WebsiteCheckPage() {
   return (
     <main id="main-content">
-      <PageHero
-        eyebrow="Free tool"
-        title={
-          <>
-            Is the website actually <em>usable?</em>
-          </>
-        }
-        description="Paste a URL and pick mobile or desktop. I run Google’s speed test for that version and look at the homepage for a phone number, a form, hours, and the other basics customers need."
-      />
-      <section className="section">
-        <div className="shell tool-page">
+      <section className="tool-workbench section-dark">
+        <div className="shell">
           <WebsiteCheckTool />
         </div>
       </section>
+      <CtaBanner
+        eyebrow="The report is free"
+        title="If the website needs work, let’s see whether a rebuild is worth it."
+        text="I’ll tell you what matters, what can wait, and what a better version would cost before any work starts."
+      />
     </main>
   );
 }

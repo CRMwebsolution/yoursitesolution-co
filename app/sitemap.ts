@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { publishedProjects } from "@/config/site";
+import { publishedTools } from "@/config/tools";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
@@ -7,9 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/websites",
     "/automation",
     "/tools",
-    "/tools/website-check",
-    "/tools/review-text",
-    "/tools/time-check",
+    ...publishedTools.map((tool) => tool.href),
     "/pricing",
     "/contact",
     "/free-demo",
