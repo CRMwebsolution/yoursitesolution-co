@@ -82,9 +82,9 @@ export default function UpgradesPage() {
                 <Box aria-hidden="true" /> Three.js scenes
               </h3>
               <p>
-                Product viewers, a simple rotating model, or a homepage piece that
-                moves. Built with Three.js when the extra motion earns its keep—not
-                because every site needs it. Drag the cube to turn it.
+                Product viewers, a brand mark, or a homepage piece that moves.
+                Built with Three.js when the extra motion earns its keep—not
+                because every site needs it. Drag the YS plate to turn it.
               </p>
               <div className="upgrade-stage">
                 <ThreePreview />
