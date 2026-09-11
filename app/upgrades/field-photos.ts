@@ -1,2 +1,2 @@
-export { BEFORE_IMAGE_URL } from "./field-before";
-export { AFTER_IMAGE_URL } from "./field-after";
+export const BEFORE_IMAGE_URL = "/upgrades/field-before.jpg";
+export const AFTER_IMAGE_URL = "/upgrades/field-after.jpg";
