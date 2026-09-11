@@ -1,0 +1,98 @@
+.upgrade-showcase {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .upgrade-showcase {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+
+.upgrade-card {
+  background: var(--surface, #fff);
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  padding: 1.25rem 1.35rem 1.5rem;
+}
+
+.upgrade-card h3 {
+  margin: 0.35rem 0 0.5rem;
+}
+
+.upgrade-card p {
+  margin: 0;
+}
+
+.upgrade-stage {
+  margin-top: 1rem;
+  min-height: 260px;
+  background: #10140f;
+  color: #f4efe6;
+  overflow: hidden;
+}
+
+.three-preview {
+  width: 100%;
+  height: 260px;
+}
+
+.three-preview canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.chat-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem;
+  min-height: 260px;
+}
+
+.chat-preview .chat-row {
+  max-width: 86%;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.chat-preview .chat-row small {
+  display: block;
+  opacity: 0.7;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.chat-preview .from-visitor {
+  align-self: flex-end;
+  background: color-mix(in srgb, #c47a4a 78%, #10140f);
+}
+
+.chat-preview .from-bot {
+  align-self: flex-start;
+  background: color-mix(in srgb, #f4efe6 12%, #10140f);
+}
+
+.upgrade-list {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 800px) {
+  .upgrade-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.upgrade-list article {
+  padding: 1.1rem 1.15rem 1.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.upgrade-list h3 {
+  margin: 0.4rem 0 0.45rem;
+}
