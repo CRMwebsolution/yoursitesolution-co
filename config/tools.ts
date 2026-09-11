@@ -1,25 +1,42 @@
 export const tools = [
   {
+    slug: "website-check",
+    href: "/tools/website-check",
+    number: "01",
+    name: "PageSpeed website check",
+    summary:
+      "Test a public page on mobile or desktop. See Google PageSpeed scores, measurements, and the fixes worth looking at first.",
+    hero: "Paste your website. See how fast it loads on a phone or computer, and the first things worth fixing.",
+    action: "Run the website check",
+    output: "Google data + plain-English priorities",
+    category: "Website performance",
+    featured: true,
+    mode: "live",
+    published: true,
+  },
+  {
     slug: "qr-code",
     href: "/tools/qr-code",
-    number: "01",
+    number: "02",
     name: "QR code generator",
     summary:
       "Turn a website, review page, payment link, phone number, or short message into a downloadable QR code.",
+    hero: "Type a link or short message. Download a picture people can scan with their phone to open it.",
     action: "Make a QR code",
     output: "Downloadable PNG + encoded content",
     category: "Marketing links",
-    featured: true,
+    featured: false,
     mode: "browser",
     published: true,
   },
   {
     slug: "image-optimizer",
     href: "/tools/image-optimizer",
-    number: "02",
+    number: "03",
     name: "Website image optimizer",
     summary:
       "Resize and compress a website photo on your device, compare the file size, and download the smaller version.",
+    hero: "Pick a photo, shrink it so the page loads faster, and download the smaller file. Nothing leaves this device.",
     action: "Optimize an image",
     output: "Resized image + real size comparison",
     category: "Website performance",
@@ -28,25 +45,12 @@ export const tools = [
     published: true,
   },
   {
-    slug: "website-check",
-    href: "/tools/website-check",
-    number: "03",
-    name: "PageSpeed website check",
-    summary:
-      "Test a public page on mobile or desktop. See Google PageSpeed scores, measurements, and the fixes worth looking at first.",
-    action: "Run the website check",
-    output: "Google data + plain-English priorities",
-    category: "Website performance",
-    featured: false,
-    mode: "live",
-    published: true,
-  },
-  {
     slug: "seo-check",
     href: "/tools/seo-check",
     number: "04",
     name: "Website SEO essentials check",
     summary: "Check the page information search engines rely on.",
+    hero: "Paste one public page. See the basic labels search engines read, like the title, description, and whether the page can be listed.",
     action: "Run the SEO check",
     output: "Search essentials + recommended fixes",
     category: "Website SEO",
@@ -60,6 +64,7 @@ export const tools = [
     number: "05",
     name: "Broken link checker",
     summary: "Find broken and redirected links within a limited website crawl.",
+    hero: "Start at a public page. Find links that go nowhere or send people to a different address than they expected.",
     action: "Check the links",
     output: "Working, redirected + broken links",
     category: "Website health",
@@ -73,6 +78,7 @@ export const tools = [
     number: "06",
     name: "Domain and email health check",
     summary: "Check public DNS addresses, mail routing, SPF, and DMARC records.",
+    hero: "Check the public records that point visitors to your website and tell the internet where business email should go.",
     action: "Check the domain",
     output: "Website address + email DNS findings",
     category: "Website health",
@@ -86,6 +92,7 @@ export const tools = [
     number: "07",
     name: "Social sharing preview check",
     summary: "Inspect the title, description, and image a shared link provides.",
+    hero: "Paste a page. See the title, text, and picture that usually show up when someone shares that link.",
     action: "Check a shared link",
     output: "Share preview + metadata findings",
     category: "Marketing links",
@@ -100,6 +107,7 @@ export const tools = [
     name: "Campaign link builder",
     summary:
       "Add clean campaign tags to a link so analytics can separate traffic from flyers, email, social posts, and ads.",
+    hero: "Add tracking tags to a link so you can tell whether a visit came from a flyer, email, post, or ad.",
     action: "Build a tracked link",
     output: "Tagged URL + parameter summary",
     category: "Marketing links",
@@ -114,6 +122,7 @@ export const tools = [
     name: "Call, text & email link builder",
     summary:
       "Create tap-to-call, prefilled text-message, and ready-to-email links for a website, QR code, or digital flyer.",
+    hero: "Make links that open a phone call, a pre-written text, or a new email when somebody taps them.",
     action: "Build contact links",
     output: "Working links + HTML snippets",
     category: "Customer communication",
@@ -128,6 +137,7 @@ export const tools = [
     name: "Email signature builder",
     summary:
       "Build a clean business email signature with clickable contact details and no image-hosting headache.",
+    hero: "Fill in your name and contact details. Copy a clean email sign-off people can tap.",
     action: "Build a signature",
     output: "Visual signature + email-ready copy",
     category: "Customer communication",
@@ -142,6 +152,7 @@ export const tools = [
     name: "Color contrast checker",
     summary:
       "Check whether one text-and-background color pair meets common WCAG contrast thresholds.",
+    hero: "Pick a text color and a background color. See whether people can actually read that combination.",
     action: "Check two colors",
     output: "Contrast ratio + pass/fail thresholds",
     category: "Website accessibility",
@@ -156,6 +167,7 @@ export const tools = [
     name: "Google search preview",
     summary:
       "Draft a page title, description, and main heading—then see how the listing may look before you publish it.",
+    hero: "Write a page title and short description, then see how that listing may look in a search result.",
     action: "Build a search listing",
     output: "Title, description, H1 + live preview",
     category: "Website SEO",
@@ -170,6 +182,7 @@ export const tools = [
     name: "Website copy clarity check",
     summary:
       "Paste website wording and find long sentences, dense paragraphs, vague phrases, and missing next steps—without a fake grade.",
+    hero: "Paste website words. See long sentences, dense paragraphs, and vague phrases that need a clearer rewrite.",
     action: "Check my wording",
     output: "Measured facts + specific editing actions",
     category: "Website copy",
@@ -184,6 +197,7 @@ export const tools = [
     name: "Repetitive-task cost calculator",
     summary:
       "Put a real number on one repeated office task using its frequency, duration, and the value of the time it consumes.",
+    hero: "Enter how often a task happens and how long it takes. See what that repeated work is costing.",
     action: "Calculate the task cost",
     output: "Monthly and yearly time + cost",
     category: "Business automation",
@@ -198,6 +212,7 @@ export const tools = [
     name: "Automation opportunity finder",
     summary:
       "Choose the repetitive handoffs slowing the business down and build a practical trigger, action, human-checkpoint, and test plan.",
+    hero: "Pick a repeated handoff. Get a simple plan for what should start the work, what happens next, and what a person still has to check.",
     action: "Find useful automations",
     output: "Prioritized implementation outline",
     category: "Business automation",
@@ -212,6 +227,7 @@ export const tools = [
     name: "Local Business schema builder",
     summary:
       "Turn accurate business details into JSON-LD code that helps search engines understand the organization.",
+    hero: "Enter the business name, address, and hours. Get code that helps search engines understand the company.",
     action: "Build business schema",
     output: "Copy-ready LocalBusiness JSON-LD",
     category: "Website SEO",
@@ -226,6 +242,7 @@ export const tools = [
     name: "Review request kit",
     summary:
       "Turn a few job details into a same-day text, a polite follow-up, and an email asking for an honest review.",
+    hero: "Fill in a finished job. Get a text, a follow-up, and an email that ask for an honest review.",
     action: "Write the messages",
     output: "SMS, follow-up + email",
     category: "Customer trust",
@@ -240,6 +257,7 @@ export const tools = [
     name: "New lead response kit",
     summary:
       "Create an immediate text, after-hours reply, email, and polite follow-up for a new customer inquiry.",
+    hero: "Get ready-to-send replies for a new customer message, including what to say after hours.",
     action: "Write the responses",
     output: "Four ready-to-use messages",
     category: "Customer communication",
@@ -254,6 +272,7 @@ export const tools = [
     name: "Website project brief builder",
     summary:
       "Organize the business, audience, pages, goals, and missing information into one useful website brief.",
+    hero: "Answer a few questions about the business. Get a one-page plan for what the website needs to do.",
     action: "Build a website brief",
     output: "Structured brief + missing-information list",
     category: "Website planning",
@@ -268,6 +287,7 @@ export const tools = [
     name: "Customer review reply writer",
     summary:
       "Turn verified details into a professional public response to a positive, mixed, or negative customer review.",
+    hero: "Say what happened. Get a short public reply to a good, mixed, or bad review.",
     action: "Write a review reply",
     output: "Short + full response drafts",
     category: "Customer trust",
@@ -278,8 +298,17 @@ export const tools = [
 ] as const;
 
 export type ToolSlug = (typeof tools)[number]["slug"];
+export type ToolDefinition = (typeof tools)[number];
 
 export const publishedTools = tools.filter((tool) => tool.published);
 export const pendingN8nTools = tools.filter(
   (tool) => tool.mode === "n8n" && !tool.published,
 );
+
+export function getTool(slug: ToolSlug) {
+  const tool = tools.find((item) => item.slug === slug);
+  if (!tool) {
+    throw new Error(`Unknown tool: ${slug}`);
+  }
+  return tool;
+}

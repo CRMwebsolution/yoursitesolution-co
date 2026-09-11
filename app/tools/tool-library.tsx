@@ -28,6 +28,8 @@ import { publishedTools, type ToolSlug } from "@/config/tools";
 
 type ToolIcon = ComponentType<{ "aria-hidden"?: boolean }>;
 
+const INITIAL_VISIBLE = 10;
+
 const toolIcons: Partial<Record<ToolSlug, ToolIcon>> = {
   "website-check": Gauge,
   "search-preview": Search,
@@ -59,15 +61,16 @@ const categories = [
 export function ToolLibrary() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All tools");
+  const [showAll, setShowAll] = useState(false);
 
-  const visibleTools = useMemo(() => {
+  const filteredTools = useMemo(() => {
     const search = query.trim().toLowerCase();
     return publishedTools.filter((tool) => {
       const categoryMatches =
         category === "All tools" || tool.category === category;
       const searchMatches =
         !search ||
-        [tool.name, tool.summary, tool.output, tool.category]
+        [tool.name, tool.summary, tool.hero, tool.output, tool.category]
           .join(" ")
           .toLowerCase()
           .includes(search);
@@ -75,9 +78,15 @@ export function ToolLibrary() {
     });
   }, [category, query]);
 
+  const filtering = Boolean(query.trim()) || category !== "All tools";
+  const visibleTools =
+    showAll || filtering ? filteredTools : filteredTools.slice(0, INITIAL_VISIBLE);
+  const hiddenCount = Math.max(filteredTools.length - visibleTools.length, 0);
+
   function clearFilters() {
     setQuery("");
     setCategory("All tools");
+    setShowAll(false);
   }
 
   return (
@@ -105,37 +114,69 @@ export function ToolLibrary() {
           </select>
         </label>
         <p aria-live="polite">
-          {visibleTools.length} {visibleTools.length === 1 ? "tool" : "tools"}
+          {visibleTools.length}
+          {hiddenCount ? ` of ${filteredTools.length}` : ""}{" "}
+          {filteredTools.length === 1 ? "tool" : "tools"}
         </p>
       </div>
 
       {visibleTools.length ? (
-        <div className="tool-index-grid">
-          {visibleTools.map((tool) => {
-            const Icon = toolIcons[tool.slug] || FileText;
-            return (
-              <article
-                key={tool.slug}
-                className={`tool-index-card${tool.featured ? " tool-index-card-featured" : ""}`}
+        <>
+          <div className="tool-index-grid">
+            {visibleTools.map((tool) => {
+              const Icon = toolIcons[tool.slug] || FileText;
+              return (
+                <article
+                  key={tool.slug}
+                  className={`tool-index-card${tool.featured ? " tool-index-card-featured" : ""}`}
+                >
+                  <div className="tool-card-topline">
+                    <span>{tool.number}</span>
+                    <span>{tool.category}</span>
+                  </div>
+                  <Icon aria-hidden={true} />
+                  <h3>{tool.name}</h3>
+                  <p>{tool.hero}</p>
+                  <dl>
+                    <dt>You get</dt>
+                    <dd>{tool.output}</dd>
+                  </dl>
+                  <Link className="text-link" href={tool.href}>
+                    {tool.action} <ArrowRight aria-hidden="true" />
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
+          {hiddenCount ? (
+            <div className="tool-more-wrap">
+              <button
+                className="button tool-more-button"
+                type="button"
+                onClick={() => setShowAll(true)}
               >
-                <div className="tool-card-topline">
-                  <span>{tool.number}</span>
-                  <span>{tool.category}</span>
-                </div>
-                <Icon aria-hidden={true} />
-                <h3>{tool.name}</h3>
-                <p>{tool.summary}</p>
-                <dl>
-                  <dt>You get</dt>
-                  <dd>{tool.output}</dd>
-                </dl>
-                <Link className="text-link" href={tool.href}>
-                  {tool.action} <ArrowRight aria-hidden="true" />
-                </Link>
-              </article>
-            );
-          })}
-        </div>
+                More tools+
+              </button>
+              <p>{hiddenCount} more free tools sit below the fold.</p>
+            </div>
+          ) : null}
+          {showAll && !filtering ? (
+            <div className="tool-more-wrap">
+              <button
+                className="button button-outline tool-more-button"
+                type="button"
+                onClick={() => {
+                  setShowAll(false);
+                  document.getElementById("main-content")?.scrollIntoView({
+                    behavior: "smooth",
+                  });
+                }}
+              >
+                Show the top 10
+              </button>
+            </div>
+          ) : null}
+        </>
       ) : (
         <div className="tool-empty-state">
           <X aria-hidden="true" />

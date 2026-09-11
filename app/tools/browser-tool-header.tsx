@@ -15,11 +15,11 @@ export function BrowserToolHeader({
   note = "Runs on this device. Nothing you enter is submitted or saved.",
 }: BrowserToolHeaderProps) {
   return (
-    <header className="utility-intro">
-      <div>
+    <header className="utility-intro tool-page-hero">
+      <div className="tool-page-hero-copy">
         <p className="eyebrow eyebrow-light">{eyebrow}</p>
         <h1>{title}</h1>
-        <p className="lede lede-light">{description}</p>
+        <p className="lede lede-light tool-page-hero-lede">{description}</p>
       </div>
       <p className="browser-only-note">
         <LockKeyhole aria-hidden="true" /> {note}
