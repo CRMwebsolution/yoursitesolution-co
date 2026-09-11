@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/websites",
     "/automation",
+    "/upgrades",
     "/tools",
     ...publishedTools.map((tool) => tool.href),
     "/pricing",
