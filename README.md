@@ -38,26 +38,29 @@ The free PageSpeed website check posts this body to the shared workflow:
 ```
 
 The n8n Switch should route on `={{ $json.body.tool }}`. Keep each tool's
-inputs at the top level of the body so the branch after the Switch can use
-expressions such as `$json.body.url` and `$json.body.strategy`. New
+inputs at the top level of the body. Each output connects to its own named
+Edit Fields node, using explicit source-node references in expressions, followed
+by the tool-specific nodes in the same workflow. New
 server-backed tool routes should call the shared helper in
 `lib/tools-workflow.ts` with their own registered tool slug.
 
-The repository also includes complete, unlisted website surfaces for four more
-live checks. They remain out of the public tools hub until their matching n8n
-Switch branches are connected:
+The following four live checks are now enabled in the tools hub and sitemap
+after the site owner confirmed that their shared-workflow branches work:
 
 - `seo-check`
 - `social-preview-check`
 - `broken-link-check`
 - `domain-health-check`
 
-Their exact request and response contracts, safety requirements, and suggested
-sub-workflow boundaries are in [`docs/n8n-tool-contracts.md`](docs/n8n-tool-contracts.md).
+Their exact request and response contracts and safety requirements are in
+[`docs/n8n-tool-contracts.md`](docs/n8n-tool-contracts.md). All branches stay in
+one workflow; no sub-workflows are required. Domain health currently checks
+public DNS only, not HTTPS, certificate expiration, or email delivery.
 
-The Webhook trigger must use **Using Respond to Webhook Node**. At the end of
-each branch, configure **Respond to Webhook** with **Respond With: First
-Incoming Item**. The tools API expects a JSON object (a one-item JSON array is
+The Webhook trigger must use **Using Respond to Webhook Node**. Each successful
+branch produces one report item and connects to the same **Respond to Webhook**
+node with **Respond With: First Incoming Item** and HTTP status **200**.
+The tools API expects a JSON object (a one-item JSON array is
 also supported). Do not use **Text** with `={{ $json }}` because an object can
 be returned as non-JSON text and cannot be decoded by the site.
 

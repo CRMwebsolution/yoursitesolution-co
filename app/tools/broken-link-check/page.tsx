@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { CtaBanner } from "@/components/cta-banner";
+import { getTool } from "@/config/tools";
 import { N8nDiagnosticTool } from "../n8n-diagnostic-tool";
+
+const tool = getTool("broken-link-check");
 
 export const metadata: Metadata = {
   title: "Limited broken-link checker",
-  description: "Check a limited crawl of a public website for broken and redirected links.",
+  description: tool.hero,
   alternates: { canonical: "/tools/broken-link-check" },
-  robots: { index: false, follow: true },
 };
 
 export default function BrokenLinkCheckPage() {
@@ -17,16 +19,19 @@ export default function BrokenLinkCheckPage() {
           <N8nDiagnosticTool
             tool="broken-link-check"
             eyebrow="Limited broken-link checker"
-            title={<>Find dead ends before a <em>customer finds them.</em></>}
-            description="Crawl up to 20 public pages and inspect up to 250 links for broken destinations and redirects. Limits keep the free check responsible and predictable."
+            title={<>Find the links that send people <em>nowhere.</em></>}
+            description={tool.hero}
             inputTitle="Website starting page"
             inputHelp="Start at the homepage or the main page for the section you want checked."
             buttonLabel="Check the website links"
-            setupDescription="Add a Switch output where $json.body.tool equals broken-link-check. Enforce the server-supplied crawl limits and return the documented diagnostic JSON."
           />
         </div>
       </section>
-      <CtaBanner eyebrow="Found links worth repairing?" title="A small broken-link list is usually a straightforward cleanup." text="I can update the destinations, preserve useful redirects, and find where the stale links are coming from." />
+      <CtaBanner
+        eyebrow="Found dead ends?"
+        title="Broken links are a small repair that makes a website feel cared for."
+        text="I can fix the paths, redirects, and leftover pages so customers land where they should."
+      />
     </main>
   );
 }

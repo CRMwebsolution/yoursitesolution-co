@@ -11,7 +11,7 @@ export const diagnosticToolDefinitions = {
     tool: "social-preview-check",
     maxPages: 1,
     disclaimer:
-      "This reads the public sharing metadata returned at check time. Social platforms may cache older values or render the same tags differently.",
+      "This previews public metadata returned at check time. The service may fall back to the regular page title or description when dedicated sharing tags are missing. Social platforms may cache older values, crop images differently, or choose different content.",
   },
   "broken-link-check": {
     tool: "broken-link-check",
@@ -24,7 +24,7 @@ export const diagnosticToolDefinitions = {
     tool: "domain-health-check",
     maxPages: 1,
     disclaimer:
-      "This reports public DNS, HTTPS, and redirect observations at check time. It is not a security audit, deliverability guarantee, or substitute for an administrator reviewing the full configuration.",
+      "This reads public DNS records available at check time. It does not test DKIM, certificate expiration, website availability, email delivery, spam placement, or overall security.",
   },
 } as const satisfies Record<
   DiagnosticToolSlug,

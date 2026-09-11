@@ -78,7 +78,7 @@ export async function POST(
 
     if (workflow.error === "not-configured") {
       return NextResponse.json(
-        { error: "This checker is built, but the shared workflow is not configured yet." },
+        { error: "This live checker is temporarily unavailable. Please try again later." },
         { status: 503 },
       );
     }
@@ -90,7 +90,7 @@ export async function POST(
     }
     if (workflow.error === "invalid-response") {
       return NextResponse.json(
-        { error: "The n8n branch responded, but it did not return JSON." },
+        { error: "The checking service returned an unreadable response. Please try again later." },
         { status: 502 },
       );
     }
@@ -98,7 +98,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "This check is not connected to a working n8n branch yet, or the branch could not complete the request.",
+            "The checking service could not complete this request. Please try again later.",
         },
         { status: workflow.status === 429 ? 429 : 502 },
       );
