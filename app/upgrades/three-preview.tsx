@@ -9,6 +9,16 @@ type MeshObj = {
   position: Vec3;
 };
 
+type CanvasTex = {
+  colorSpace?: unknown;
+  anisotropy: number;
+  needsUpdate: boolean;
+  wrapS?: unknown;
+  repeat: { set: (x: number, y: number) => void };
+  offset: { set: (x: number, y: number) => void };
+  dispose: () => void;
+};
+
 type ThreeLib = {
   Scene: new () => { add: (object: unknown) => void };
   Group: new () => {
@@ -42,12 +52,8 @@ type ThreeLib = {
     dispose: () => void;
   };
   Mesh: new (geometry: unknown, material: unknown) => MeshObj;
-  CanvasTexture: new (canvas: HTMLCanvasElement) => {
-    colorSpace?: unknown;
-    anisotropy: number;
-    needsUpdate: boolean;
-    dispose: () => void;
-  };
+  CanvasTexture: new (canvas: HTMLCanvasElement) => CanvasTex;
+  RepeatWrapping?: unknown;
   SRGBColorSpace?: unknown;
   AmbientLight: new (color: number, intensity: number) => unknown;
   HemisphereLight: new (
@@ -95,6 +101,18 @@ function roundedRect(
   ctx.closePath();
 }
 
+function paintPlateBase(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = "#16382c";
+  ctx.fillRect(0, 0, 1024, 1024);
+  ctx.fillStyle = "#1f4a3a";
+  roundedRect(ctx, 36, 36, 952, 952, 160);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(196, 92, 38, 0.35)";
+  ctx.lineWidth = 10;
+  roundedRect(ctx, 70, 70, 884, 884, 140);
+  ctx.stroke();
+}
+
 function makePlateFace() {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
@@ -102,25 +120,34 @@ function makePlateFace() {
   const ctx = canvas.getContext("2d");
   if (!ctx) return canvas;
 
-  ctx.fillStyle = "#16382c";
-  ctx.fillRect(0, 0, 1024, 1024);
-
-  ctx.fillStyle = "#1f4a3a";
-  roundedRect(ctx, 36, 36, 952, 952, 160);
-  ctx.fill();
-
-  ctx.strokeStyle = "rgba(196, 92, 38, 0.35)";
-  ctx.lineWidth = 10;
-  roundedRect(ctx, 70, 70, 884, 884, 140);
-  ctx.stroke();
-
+  paintPlateBase(ctx);
   ctx.fillStyle = "#c45c26";
   ctx.font = "700 430px Georgia, 'Times New Roman', serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.letterSpacing = "-18px";
   ctx.fillText("YS", 512, 560);
+  return canvas;
+}
 
+function makeNameFace() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+
+  paintPlateBase(ctx);
+  ctx.fillStyle = "#f4efe6";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.letterSpacing = "2px";
+  ctx.font = "600 92px Georgia, 'Times New Roman', serif";
+  ctx.fillText("YOUR SITE", 512, 430);
+  ctx.font = "600 92px Georgia, 'Times New Roman', serif";
+  ctx.fillText("SOLUTION", 512, 560);
+  ctx.fillStyle = "rgba(196, 92, 38, 0.9)";
+  ctx.fillRect(362, 630, 300, 4);
   return canvas;
 }
 
@@ -175,17 +202,30 @@ export function ThreePreview() {
         renderer.setClearColor(0x000000, 0);
         mount.appendChild(renderer.domElement);
 
-        const faceMap = new THREE.CanvasTexture(makePlateFace());
-        if (THREE.SRGBColorSpace) faceMap.colorSpace = THREE.SRGBColorSpace;
-        faceMap.anisotropy = 8;
-        faceMap.needsUpdate = true;
+        const prepareMap = (canvas: HTMLCanvasElement, flipX = false) => {
+          const map = new THREE.CanvasTexture(canvas);
+          if (THREE.SRGBColorSpace) map.colorSpace = THREE.SRGBColorSpace;
+          map.anisotropy = 8;
+          if (flipX && THREE.RepeatWrapping) {
+            map.wrapS = THREE.RepeatWrapping;
+            map.repeat.set(-1, 1);
+            map.offset.set(1, 0);
+          }
+          map.needsUpdate = true;
+          return map;
+        };
 
-        const edgeMap = new THREE.CanvasTexture(makeEdgeFace());
-        if (THREE.SRGBColorSpace) edgeMap.colorSpace = THREE.SRGBColorSpace;
-        edgeMap.needsUpdate = true;
+        const faceMap = prepareMap(makePlateFace());
+        const nameMap = prepareMap(makeNameFace(), true);
+        const edgeMap = prepareMap(makeEdgeFace());
 
         const faceMat = new THREE.MeshStandardMaterial({
           map: faceMap,
+          roughness: 0.32,
+          metalness: 0.18,
+        });
+        const nameMat = new THREE.MeshStandardMaterial({
+          map: nameMap,
           roughness: 0.32,
           metalness: 0.18,
         });
@@ -193,11 +233,6 @@ export function ThreePreview() {
           map: edgeMap,
           roughness: 0.28,
           metalness: 0.35,
-        });
-        const backMat = new THREE.MeshStandardMaterial({
-          color: 0x16382c,
-          roughness: 0.4,
-          metalness: 0.12,
         });
 
         const plateGeo = new THREE.BoxGeometry(1.7, 1.7, 0.22);
@@ -207,7 +242,7 @@ export function ThreePreview() {
           edgeMat,
           edgeMat,
           faceMat,
-          backMat,
+          nameMat,
         ]);
 
         const group = new THREE.Group();
@@ -300,10 +335,11 @@ export function ThreePreview() {
           resizeObserver?.disconnect();
           listeners.forEach(([type, handler]) => mount.removeEventListener(type, handler));
           faceMap.dispose();
+          nameMap.dispose();
           edgeMap.dispose();
           faceMat.dispose();
+          nameMat.dispose();
           edgeMat.dispose();
-          backMat.dispose();
           plateGeo.dispose();
           renderer.dispose();
           if (renderer.domElement.parentNode) {
@@ -337,7 +373,7 @@ export function ThreePreview() {
       ref={mountRef}
       className="three-preview"
       role="application"
-      aria-label="Interactive Three.js YS logo plate. Drag to rotate."
+      aria-label="Interactive Three.js plate with YS on one side and Your Site Solution on the other. Drag to rotate."
       tabIndex={0}
     >
       <p className="three-hint">Drag to turn</p>
