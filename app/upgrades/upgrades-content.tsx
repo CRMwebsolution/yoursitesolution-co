@@ -11,12 +11,12 @@ import { ThreePreview } from "./three-preview";
 import {
   AvailabilityDemo,
   BeforeAfterDemo,
+  BilingualDemo,
   BookingDemo,
   JobQrDemo,
   MultiLocationDemo,
   OrderTrackerDemo,
   PasswordGateDemo,
-  PayLinkDemo,
   PhotoQuoteDemo,
   PriceListDemo,
   ThemeDemo,
@@ -24,15 +24,15 @@ import {
 } from "./upgrade-demos";
 
 export function UpgradesContent() {
-  const { t, lang, setLang } = useLanguage();
+  const { t } = useLanguage();
 
   const catalog = [
     {
       eyebrow: t("Compare the work", "Comparar el trabajo"),
       title: t("Before / after slider", "Control antes / después"),
       text: t(
-        "Show the old page next to the new one. Customers drag the handle.",
-        "Muestra la página vieja junto a la nueva. El cliente mueve la barra.",
+        "Show the old page next to the new one. Drop image URLs into the two placeholders when you have real shots.",
+        "Muestra la página vieja junto a la nueva. Cuando tengas fotos reales, pegas las URLs en los dos espacios.",
       ),
       demo: <BeforeAfterDemo />,
     },
@@ -40,8 +40,8 @@ export function UpgradesContent() {
       eyebrow: t("Job status", "Estado del trabajo"),
       title: t("Order tracker", "Seguimiento de orden"),
       text: t(
-        "Same card style as the chat. The customer sees received, scheduled, on site, done.",
-        "El mismo estilo del chat. El cliente ve recibido, agendado, en sitio, listo.",
+        "The customer opens one page and sees where their job sits: request in, date set, crew headed over, finished.",
+        "El cliente abre una página y ve dónde va el trabajo: pedido, fecha, equipo en camino, terminado.",
       ),
       demo: <OrderTrackerDemo />,
     },
@@ -49,26 +49,17 @@ export function UpgradesContent() {
       eyebrow: t("Language", "Idioma"),
       title: t("Bilingual toggle", "Cambio de idioma"),
       text: t(
-        "English / Spanish for the chrome of this site and this page. Use the ES control in the header, or the one here.",
-        "Inglés / español en la barra del sitio y en esta página. Usa ES en el encabezado o el control de aquí.",
+        "Header, footer, and this upgrades page switch. Other pages stay English until those pages get their own copy. The card below is a shop homepage that flips with the same control.",
+        "El encabezado, el pie y esta página de mejoras cambian. Las otras rutas siguen en inglés hasta que tengan su texto. La tarjeta es una portada de taller que cambia con el mismo control.",
       ),
-      demo: (
-        <div className="demo-pad">
-          <button type="button" className="chip is-on" onClick={() => setLang(lang === "en" ? "es" : "en")}>
-            {lang === "en" ? "Español" : "English"}
-          </button>
-          <p className="demo-note">
-            {t("Header, footer, and this page change together.", "El encabezado, el pie y esta página cambian juntos.")}
-          </p>
-        </div>
-      ),
+      demo: <BilingualDemo />,
     },
     {
       eyebrow: t("Scheduling", "Citas"),
       title: t("Click to book", "Reservar con un clic"),
       text: t(
-        "A few open slots. Confirmation text ready. No calendar maze.",
-        "Unos horarios libres. Texto de confirmación listo. Sin laberinto.",
+        "A week across the top. Four times under each day. One tap holds the window.",
+        "Una semana arriba. Cuatro horas bajo cada día. Un toque aparta la ventana.",
       ),
       demo: <BookingDemo />,
     },
@@ -76,8 +67,8 @@ export function UpgradesContent() {
       eyebrow: t("Private pages", "Páginas privadas"),
       title: t("Password page", "Página con clave"),
       text: t(
-        "Invoices, photos, or job notes behind a simple password. Demo password is shop.",
-        "Facturas, fotos o notas detrás de una clave. En la demo la clave es shop.",
+        "A real customer page sits behind the lock. Demo password is shop.",
+        "Una página de cliente queda detrás del candado. En la demo la clave es shop.",
       ),
       demo: <PasswordGateDemo />,
     },
@@ -85,8 +76,8 @@ export function UpgradesContent() {
       eyebrow: t("Menus and rates", "Menús y tarifas"),
       title: t("Updateable list", "Lista editable"),
       text: t(
-        "The owner changes a price. The public list follows.",
-        "El dueño cambia un precio. La lista pública lo muestra.",
+        "The owner changes a rate. The public list follows.",
+        "El dueño cambia una tarifa. La lista pública lo muestra.",
       ),
       demo: <PriceListDemo />,
     },
@@ -94,35 +85,26 @@ export function UpgradesContent() {
       eyebrow: t("Inventory", "Inventario"),
       title: t("Live availability board", "Tablero en vivo"),
       text: t(
-        "Open, hold, or out. Tap a unit to cycle the status.",
-        "Libre, apartado o fuera. Toca una unidad para cambiar el estado.",
+        "Named units with a short status. Tap to cycle open, on hold, or out.",
+        "Unidades con nombre y un estado corto. Toca para pasar de libre a apartado o fuera.",
       ),
       demo: <AvailabilityDemo />,
     },
     {
       eyebrow: t("Estimates", "Cotizaciones"),
-      title: t("Photo quote", "Cotizar con foto"),
+      title: t("Quote request with photos", "Cotizar con fotos"),
       text: t(
-        "Customer attaches a picture. You answer with a number.",
-        "El cliente adjunta una foto. Tú contestas con un número.",
+        "Name and job notes first. Photos are optional extras on the same request.",
+        "Nombre y notas primero. Las fotos son extras opcionales del mismo pedido.",
       ),
       demo: <PhotoQuoteDemo />,
-    },
-    {
-      eyebrow: t("Payments", "Pagos"),
-      title: t("Pay link", "Enlace de pago"),
-      text: t(
-        "Deposit buttons and a receipt screen. Live card processing is quoted separately.",
-        "Botones de depósito y un recibo. Cobrar de verdad se cotiza aparte.",
-      ),
-      demo: <PayLinkDemo />,
     },
     {
       eyebrow: t("Look", "Apariencia"),
       title: t("Light / dark shop theme", "Tema claro / oscuro"),
       text: t(
-        "Same layout, two skins. Useful when a shop works days and nights.",
-        "La misma plantilla, dos pieles. Útil si el negocio trabaja de día y de noche.",
+        "Same pages. A day skin and a night skin so after-hours work still reads.",
+        "Las mismas páginas. Una piel de día y una de noche para leer después del cierre.",
       ),
       demo: <ThemeDemo />,
     },
@@ -130,8 +112,8 @@ export function UpgradesContent() {
       eyebrow: t("Paper trail", "Papel"),
       title: t("Printable work order", "Orden imprimible"),
       text: t(
-        "Job details on a clean sheet the customer or crew can print.",
-        "Datos del trabajo en una hoja que el cliente o el equipo puede imprimir.",
+        "Customer, scope, window, crew, deposit, and balance on one sheet.",
+        "Cliente, trabajo, ventana, equipo, depósito y saldo en una hoja.",
       ),
       demo: <WorkOrderDemo />,
     },
@@ -139,8 +121,8 @@ export function UpgradesContent() {
       eyebrow: t("On the job", "En el trabajo"),
       title: t("QR for every job", "QR por trabajo"),
       text: t(
-        "A code on the invoice or the windshield opens that job’s tracker.",
-        "Un código en la factura o el parabrisas abre el seguimiento.",
+        "A code on the invoice or the windshield. Simulate scan to open that job.",
+        "Un código en la factura o el parabrisas. Simula el escaneo para abrir el trabajo.",
       ),
       demo: <JobQrDemo />,
     },
@@ -161,7 +143,7 @@ export function UpgradesContent() {
         eyebrow={t("Optional upgrades", "Mejoras opcionales")}
         title={
           <>
-            {t("The extras that make a site", "Los extras que hacen que el sitio") } <em>{t("do more.", "haga más.")}</em>
+            {t("The extras that make a site", "Los extras que hacen que el sitio")} <em>{t("do more.", "haga más.")}</em>
           </>
         }
         description={t(
@@ -183,7 +165,7 @@ export function UpgradesContent() {
             eyebrow={t("See it, then decide", "Míralo y decide")}
             title={
               <>
-                {t("Examples that stay", "Ejemplos que siguen") } <span>{t("optional.", "opcionales.")}</span>
+                {t("Examples that stay", "Ejemplos que siguen")} <span>{t("optional.", "opcionales.")}</span>
               </>
             }
             description={t(
