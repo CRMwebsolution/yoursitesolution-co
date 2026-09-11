@@ -31,8 +31,8 @@ export function UpgradesContent() {
       eyebrow: t("Compare the work", "Comparar el trabajo"),
       title: t("Before / after slider", "Control antes / después"),
       text: t(
-        "Show the old page next to the new one. Drop image URLs into the two placeholders when you have real shots.",
-        "Muestra la página vieja junto a la nueva. Cuando tengas fotos reales, pegas las URLs en los dos espacios.",
+        "Same lot. Left is the overgrown field. Slide to the mowed field with the tractor still on it.",
+        "El mismo lote. A la izquierda el campo crecido. Desliza hasta el campo cortado con el tractor encima.",
       ),
       demo: <BeforeAfterDemo />,
     },
