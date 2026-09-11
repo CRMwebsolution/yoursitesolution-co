@@ -57,7 +57,7 @@ export default function UpgradesPage() {
                 Two examples that stay <span>optional.</span>
               </>
             }
-            description="These are add-ons, not part of the $300 or $750 starting websites. If they are useful, we scope them. If they are decoration, we skip them."
+            description="These are add-ons, not part of the $300 or $750 starting websites. If they are useful, we scope them. If they are decoration, we'll let you know."
           />
 
           <div className="upgrade-showcase">
@@ -84,7 +84,7 @@ export default function UpgradesPage() {
               <p>
                 Product viewers, a simple rotating model, or a homepage piece that
                 moves. Built with Three.js when the extra motion earns its keep—not
-                because every site needs it.
+                because every site needs it. Drag the cube to turn it.
               </p>
               <div className="upgrade-stage">
                 <ThreePreview />

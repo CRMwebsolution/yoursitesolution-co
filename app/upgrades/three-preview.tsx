@@ -76,6 +76,12 @@ export function ThreePreview() {
     let disposed = false;
     let frame = 0;
     let resizeObserver: ResizeObserver | undefined;
+    const listeners: Array<[string, EventListener]> = [];
+
+    const on = (type: string, handler: EventListener) => {
+      mount.addEventListener(type, handler, { passive: false });
+      listeners.push([type, handler]);
+    };
 
     loadThree()
       .then((THREE) => {
@@ -107,13 +113,66 @@ export function ThreePreview() {
         key.position.set(2, 3, 4);
         scene.add(key);
 
-        const tick = (time: number) => {
-          mesh.rotation.x = time / 2400;
-          mesh.rotation.y = time / 1600;
+        let rotX = 0.45;
+        let rotY = 0.6;
+        let dragging = false;
+        let lastX = 0;
+        let lastY = 0;
+        let lastMove = 0;
+
+        const tick = () => {
+          if (!dragging && performance.now() - lastMove > 400) {
+            rotY += 0.006;
+          }
+          mesh.rotation.x = rotX;
+          mesh.rotation.y = rotY;
           renderer.render(scene, camera);
           frame = window.requestAnimationFrame(tick);
         };
         frame = window.requestAnimationFrame(tick);
+
+        const pointerPos = (event: Event) => {
+          const e = event as PointerEvent;
+          return { x: e.clientX, y: e.clientY };
+        };
+
+        const onDown = (event: Event) => {
+          event.preventDefault();
+          const { x, y } = pointerPos(event);
+          dragging = true;
+          lastX = x;
+          lastY = y;
+          lastMove = performance.now();
+          mount.classList.add("is-dragging");
+          try {
+            mount.setPointerCapture((event as PointerEvent).pointerId);
+          } catch {
+            /* older browsers */
+          }
+        };
+
+        const onMove = (event: Event) => {
+          if (!dragging) return;
+          event.preventDefault();
+          const { x, y } = pointerPos(event);
+          rotY += (x - lastX) * 0.01;
+          rotX += (y - lastY) * 0.01;
+          rotX = Math.max(-1.2, Math.min(1.2, rotX));
+          lastX = x;
+          lastY = y;
+          lastMove = performance.now();
+        };
+
+        const onUp = () => {
+          dragging = false;
+          mount.classList.remove("is-dragging");
+        };
+
+        on("pointerdown", onDown);
+        on("pointermove", onMove);
+        on("pointerup", onUp);
+        on("pointercancel", onUp);
+        on("pointerleave", onUp);
 
         const resize = () => {
           if (!mountRef.current) return;
@@ -129,6 +188,7 @@ export function ThreePreview() {
         return () => {
           window.cancelAnimationFrame(frame);
           resizeObserver?.disconnect();
+          listeners.forEach(([type, handler]) => mount.removeEventListener(type, handler));
           renderer.dispose();
           if (renderer.domElement.parentNode) {
             renderer.domElement.parentNode.removeChild(renderer.domElement);
@@ -138,14 +198,12 @@ export function ThreePreview() {
       .then((cleanup) => {
         if (disposed) cleanup?.();
         else {
-          const previous = () => undefined;
-          void previous;
           (mount as HTMLDivElement & { __cleanup?: () => void }).__cleanup = cleanup;
         }
       })
       .catch(() => {
-        if (mount && !mount.textContent) {
-          mount.textContent = "3D preview needs WebGL in this browser.";
+        if (mount && !mount.querySelector("canvas")) {
+          mount.append("3D preview needs WebGL in this browser.");
         }
       });
 
@@ -162,8 +220,11 @@ export function ThreePreview() {
     <div
       ref={mountRef}
       className="three-preview"
-      role="img"
-      aria-label="Live Three.js preview of a rotating copper cube"
-    />
+      role="application"
+      aria-label="Interactive Three.js cube. Drag to rotate."
+      tabIndex={0}
+    >
+      <p className="three-hint">Drag to turn</p>
+    </div>
   );
 }
