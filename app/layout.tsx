@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { LanguageProvider } from "@/components/language-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
@@ -67,12 +68,14 @@ export default function RootLayout({
       className={`scroll-smooth ${sourceSerif.variable} ${sourceSans.variable}`}
     >
       <body>
-        <a className="skip-link" href="#main-content">
-          Skip to content
-        </a>
-        <SiteHeader />
-        {children}
-        <SiteFooter />
+        <LanguageProvider>
+          <a className="skip-link" href="#main-content">
+            Skip to content
+          </a>
+          <SiteHeader />
+          {children}
+          <SiteFooter />
+        </LanguageProvider>
         <Analytics />
       </body>
     </html>
