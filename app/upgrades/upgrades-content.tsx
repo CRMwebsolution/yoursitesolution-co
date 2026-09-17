@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Box, MessageSquareText, Sparkles } from "lucide-react";
+import { ArrowRight, Box, LayoutDashboard, MessageSquareText, Sparkles } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { PageHero } from "@/components/page-hero";
 import { SectionHeading } from "@/components/section-heading";
@@ -22,6 +22,8 @@ import {
   ThemeDemo,
   WorkOrderDemo,
 } from "./upgrade-demos";
+
+const SHOP_DESK_URL = "https://admin.yoursitesolution.com";
 
 export function UpgradesContent() {
   const { t } = useLanguage();
@@ -175,6 +177,42 @@ export function UpgradesContent() {
           />
 
           <div className="upgrade-showcase">
+            <article className="upgrade-card upgrade-card-wide">
+              <p className="eyebrow">{t("Shop desk", "Escritorio del taller")}</p>
+              <h3>
+                <LayoutDashboard aria-hidden="true" /> {t("Admin dashboard", "Panel de administración")}
+              </h3>
+              <p>
+                {t(
+                  "A taste of a business-facing desk. Create an account, pick calendar, customers, files, and gallery, then add your own rows. This is a demo, not a finished system and not part of the $300 or $750 websites.",
+                  "Una muestra de un escritorio para el negocio. Crea una cuenta, elige calendario, clientes, archivos y galería, y agrega tus propias filas. Es una demo, no un sistema terminado ni parte de los sitios de $300 o $750.",
+                )}
+              </p>
+              <div className="upgrade-stage desk-preview">
+                <p className="demo-kicker">{t("Shop dashboard demo", "Demo del escritorio")}</p>
+                <h4>{t("See what a shop desk can look like.", "Mira cómo puede verse el escritorio.")}</h4>
+                <p className="demo-note">
+                  {t(
+                    "Create an account. Pick the pieces you want. Add your own rows.",
+                    "Crea una cuenta. Elige las piezas. Agrega tus propias filas.",
+                  )}
+                </p>
+                <ul className="desk-checks">
+                  <li>{t("Your login, your rows.", "Tu acceso, tus filas.")}</li>
+                  <li>{t("Calendar, customers, files, gallery.", "Calendario, clientes, archivos, galería.")}</li>
+                  <li>{t("Turn pieces on or off later.", "Enciende o apaga piezas después.")}</li>
+                </ul>
+                <div className="desk-actions">
+                  <a className="button" href={SHOP_DESK_URL} target="_blank" rel="noreferrer">
+                    {t("Open the shop desk", "Abrir el escritorio")} <ArrowRight aria-hidden="true" />
+                  </a>
+                  <a className="button button-ghost" href={`${SHOP_DESK_URL}/login`} target="_blank" rel="noreferrer">
+                    {t("Log in", "Entrar")}
+                  </a>
+                </div>
+              </div>
+            </article>
+
             <article className="upgrade-card">
               <p className="eyebrow">{t("Customer questions", "Preguntas")}</p>
               <h3>
@@ -256,8 +294,8 @@ export function UpgradesContent() {
         eyebrow={t("Want one of these on a site?", "¿Quieres uno de estos en un sitio?")}
         title={t("Tell me what it should do.", "Dime qué tiene que hacer.")}
         text={t(
-          "A chatbot, a 3D product view, a booking flow, or something I have not listed. Plain English is enough.",
-          "Un chat, una vista 3D, reservas o algo que no esté en la lista. El español claro también sirve.",
+          "A chatbot, a shop desk, a 3D product view, a booking flow, or something I have not listed. Plain English is enough.",
+          "Un chat, un escritorio, una vista 3D, reservas o algo que no esté en la lista. El español claro también sirve.",
         )}
       />
     </main>
