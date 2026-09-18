@@ -44,12 +44,21 @@ export const metadata: Metadata = {
     title: "Your Site Solution | Custom Websites for Small Businesses",
     description:
       "Custom websites that fit the business, without the agency runaround.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Your Site Solution",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Your Site Solution",
     description:
       "Affordable custom websites and practical business automations.",
+    images: ["/opengraph-image"],
   },
   icons: {
     icon: "/favicon.svg",
