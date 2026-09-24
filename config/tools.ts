@@ -107,9 +107,9 @@ export const tools = [
     name: "Campaign link builder",
     summary:
       "Add clean campaign tags to a link so analytics can separate traffic from flyers, email, social posts, and ads.",
-    hero: "Add tracking tags to a link so you can tell whether a visit came from a flyer, email, post, or ad.",
+    hero: "Build a trackable link and matching QR code so you can tell whether a visit came from a flyer, email, post, or ad.",
     action: "Build a tracked link",
-    output: "Tagged URL + parameter summary",
+    output: "Tagged URL + downloadable QR code",
     category: "Marketing links",
     featured: false,
     mode: "browser",

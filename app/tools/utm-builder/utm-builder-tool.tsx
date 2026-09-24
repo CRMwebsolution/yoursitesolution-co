@@ -1,10 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ExternalLink, Link2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
+import { Download, ExternalLink, Link2, QrCode } from "lucide-react";
 import { BrowserToolHeader } from "../browser-tool-header";
 import { CopyButton } from "../copy-button";
 import { buildUtmUrl } from "@/lib/free-tools";
+
+function safeFilename(value: string) {
+  const name = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+  return `${name || "campaign"}-qr-code.png`;
+}
 
 export function UtmBuilderTool() {
   const [url, setUrl] = useState("");
@@ -13,6 +24,11 @@ export function UtmBuilderTool() {
   const [campaign, setCampaign] = useState("");
   const [term, setTerm] = useState("");
   const [content, setContent] = useState("");
+  const [qrResult, setQrResult] = useState({
+    url: "",
+    dataUrl: "",
+    error: "",
+  });
   const result = useMemo(
     () => buildUtmUrl({ url, source, medium, campaign, term, content }),
     [campaign, content, medium, source, term, url],
@@ -22,6 +38,43 @@ export function UtmBuilderTool() {
     !medium.trim() ? "medium" : "",
     !campaign.trim() ? "campaign" : "",
   ].filter(Boolean);
+  const campaignReady = result.valid && missingBasics.length === 0;
+  const qrFilename = useMemo(() => safeFilename(campaign), [campaign]);
+  const qrDataUrl =
+    campaignReady && qrResult.url === result.url ? qrResult.dataUrl : "";
+  const qrError =
+    campaignReady && qrResult.url === result.url ? qrResult.error : "";
+
+  useEffect(() => {
+    let active = true;
+
+    if (!campaignReady) {
+      return;
+    }
+
+    QRCode.toDataURL(result.url, {
+      width: 900,
+      margin: 3,
+      errorCorrectionLevel: "M",
+      color: { dark: "#0b1624", light: "#fffdf8" },
+    })
+      .then((dataUrl) => {
+        if (!active) return;
+        setQrResult({ url: result.url, dataUrl, error: "" });
+      })
+      .catch(() => {
+        if (!active) return;
+        setQrResult({
+          url: result.url,
+          dataUrl: "",
+          error: "The finished campaign link could not be turned into a QR code.",
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [campaignReady, result.url]);
 
   return (
     <div className="utility-tool">
@@ -32,7 +85,7 @@ export function UtmBuilderTool() {
             Know which promotion <em>earned the visit.</em>
           </>
         }
-        description="Add standard UTM tags to a page link. The destination still opens normally, while compatible analytics can separate traffic by source, medium, and campaign."
+        description="Add tracking labels to a page link so compatible analytics can separate visits from flyers, email, social posts, and ads. Download a matching QR code for printed campaigns."
       />
 
       <div className="utility-grid">
@@ -154,6 +207,57 @@ export function UtmBuilderTool() {
               </a>
             ) : null}
           </div>
+
+          <section className="campaign-qr-section" aria-labelledby="campaign-qr-title">
+            <div className="campaign-qr-heading">
+              <QrCode aria-hidden="true" />
+              <div>
+                <h3 id="campaign-qr-title">Campaign QR code</h3>
+                <p>
+                  This QR code opens the tagged campaign link above, so scans
+                  can be identified by the same campaign labels.
+                </p>
+              </div>
+            </div>
+
+            <div className="campaign-qr-grid" aria-live="polite">
+              <div className="campaign-qr-preview">
+                {qrDataUrl ? (
+                  // A generated data URL cannot use the Next image optimizer.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={qrDataUrl} alt="QR code for the tagged campaign link" />
+                ) : (
+                  <div className="campaign-qr-empty">
+                    <QrCode aria-hidden="true" />
+                    <p>
+                      Add a valid destination, source, medium, and campaign name
+                      to create the QR code.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="campaign-qr-actions">
+                <a
+                  className={`button${qrDataUrl ? "" : " is-disabled"}`}
+                  href={qrDataUrl || undefined}
+                  download={qrFilename}
+                  aria-disabled={!qrDataUrl}
+                  onClick={(event) => {
+                    if (!qrDataUrl) event.preventDefault();
+                  }}
+                  tabIndex={qrDataUrl ? undefined : -1}
+                >
+                  <Download aria-hidden="true" /> Download QR code
+                </a>
+                <p>
+                  Scan it with a phone before printing. Keep the light border
+                  around the code intact.
+                </p>
+              </div>
+            </div>
+            {qrError ? <p className="form-error">{qrError}</p> : null}
+          </section>
 
           <p className="tool-accuracy-note">
             This builds the tagged URL. Your analytics platform still needs to
