@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...publishedTools.map((tool) => tool.href),
     "/pricing",
     "/contact",
+    "/privacy",
     "/free-demo",
   ];
   if (publishedProjects.length) routes.push("/work");
