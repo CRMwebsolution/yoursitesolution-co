@@ -46,6 +46,7 @@ export function SiteFooter() {
       </div>
       <div className="shell footer-bottom">
         <span>© {new Date().getFullYear()} Your Site Solution</span>
+        <Link href="/privacy">{t("Privacy Policy", "Política de privacidad")}</Link>
         <span>{t("Website by Your Site Solution.", "Sitio de Your Site Solution.")}</span>
       </div>
     </footer>
