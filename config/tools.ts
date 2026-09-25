@@ -30,9 +30,24 @@ export const tools = [
     published: true,
   },
   {
+    slug: "utm-builder",
+    href: "/tools/utm-builder",
+    number: "03",
+    name: "Campaign link builder",
+    summary:
+      "Add clean campaign tags to a link so analytics can separate traffic from flyers, email, social posts, and ads.",
+    hero: "Build a trackable link and matching QR code so you can tell whether a visit came from a flyer, email, post, or ad.",
+    action: "Build a tracked link",
+    output: "Tagged URL + downloadable QR code",
+    category: "Marketing links",
+    featured: false,
+    mode: "browser",
+    published: true,
+  },
+  {
     slug: "image-optimizer",
     href: "/tools/image-optimizer",
-    number: "03",
+    number: "04",
     name: "Website image optimizer",
     summary:
       "Resize and compress a website photo on your device, compare the file size, and download the smaller version.",
@@ -47,7 +62,7 @@ export const tools = [
   {
     slug: "seo-check",
     href: "/tools/seo-check",
-    number: "04",
+    number: "05",
     name: "Website SEO essentials check",
     summary: "Check the page information search engines rely on.",
     hero: "Paste one public page. See the basic labels search engines read, like the title, description, and whether the page can be listed.",
@@ -61,7 +76,7 @@ export const tools = [
   {
     slug: "broken-link-check",
     href: "/tools/broken-link-check",
-    number: "05",
+    number: "06",
     name: "Broken link checker",
     summary: "Find broken and redirected links within a limited website crawl.",
     hero: "Start at a public page. Find links that go nowhere or send people to a different address than they expected.",
@@ -75,7 +90,7 @@ export const tools = [
   {
     slug: "domain-health-check",
     href: "/tools/domain-health-check",
-    number: "06",
+    number: "07",
     name: "Domain and email health check",
     summary: "Check public DNS addresses, mail routing, SPF, and DMARC records.",
     hero: "Check the public records that point visitors to your website and tell the internet where business email should go.",
@@ -89,7 +104,7 @@ export const tools = [
   {
     slug: "social-preview-check",
     href: "/tools/social-preview-check",
-    number: "07",
+    number: "08",
     name: "Social sharing preview check",
     summary: "Inspect the title, description, and image a shared link provides.",
     hero: "Paste a page. See the title, text, and picture that usually show up when someone shares that link.",
@@ -98,21 +113,6 @@ export const tools = [
     category: "Marketing links",
     featured: false,
     mode: "n8n",
-    published: true,
-  },
-  {
-    slug: "utm-builder",
-    href: "/tools/utm-builder",
-    number: "08",
-    name: "Campaign link builder",
-    summary:
-      "Add clean campaign tags to a link so analytics can separate traffic from flyers, email, social posts, and ads.",
-    hero: "Add tracking tags to a link so you can tell whether a visit came from a flyer, email, post, or ad.",
-    action: "Build a tracked link",
-    output: "Tagged URL + parameter summary",
-    category: "Marketing links",
-    featured: false,
-    mode: "browser",
     published: true,
   },
   {
