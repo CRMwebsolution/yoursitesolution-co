@@ -94,7 +94,10 @@ export function UtmBuilderTool() {
             <span>01</span>
             <div>
               <h2 id="utm-input-title">Name the link and campaign</h2>
-              <p>Use short, consistent names such as facebook, email, or fall-flyer.</p>
+              <p>
+                These labels tell your analytics where a visitor found the link
+                and which promotion brought them to your website.
+              </p>
             </div>
           </div>
           <div className="tool-field-grid">
@@ -105,34 +108,48 @@ export function UtmBuilderTool() {
                 inputMode="url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder="https://example.com/spring-special"
+                placeholder="https://yourbusiness.com/spring-special"
               />
+              <span>
+                The page people should see after clicking or scanning. Example:
+                yourbusiness.com/spring-special.
+              </span>
             </label>
             <label>
               Campaign source
               <input
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
-                placeholder="facebook"
+                placeholder="food-lion"
               />
-              <span>Where the visitor found the link.</span>
+              <span>
+                The exact place that sent the visitor. Example: facebook,
+                food-lion, or carteret-speedway.
+              </span>
             </label>
             <label>
               Campaign medium
               <input
                 value={medium}
                 onChange={(event) => setMedium(event.target.value)}
-                placeholder="social"
+                placeholder="print"
               />
-              <span>The general channel: social, email, print, or cpc.</span>
+              <span>
+                The kind of promotion they used. Example: social, email, print,
+                banner, or paid-ad.
+              </span>
             </label>
             <label className="tool-field-wide">
               Campaign name
               <input
                 value={campaign}
                 onChange={(event) => setCampaign(event.target.value)}
-                placeholder="spring-cleanup"
+                placeholder="spring-trailer-special"
               />
+              <span>
+                One name that groups every link from the same promotion.
+                Example: spring-trailer-special.
+              </span>
             </label>
             <label>
               Search term (optional)
@@ -141,14 +158,22 @@ export function UtmBuilderTool() {
                 onChange={(event) => setTerm(event.target.value)}
                 placeholder="dump trailer rental"
               />
+              <span>
+                For a paid search ad, enter the words you targeted. Leave this
+                blank for flyers, email, banners, and social posts.
+              </span>
             </label>
             <label>
               Link variation (optional)
               <input
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
-                placeholder="orange-button"
+                placeholder="front-door-flyer"
               />
+              <span>
+                Use this to compare two versions or placements of the same
+                campaign. Example: front-door-flyer or orange-button.
+              </span>
             </label>
           </div>
         </section>
