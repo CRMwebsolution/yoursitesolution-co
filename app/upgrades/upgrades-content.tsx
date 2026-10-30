@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Box, LayoutDashboard, MessageSquareText, Sparkles } from "lucide-react";
+import { ArrowRight, Box, LayoutDashboard, Mail, MessageSquareText, Sparkles } from "lucide-react";
 import { CtaBanner } from "@/components/cta-banner";
 import { PageHero } from "@/components/page-hero";
 import { SectionHeading } from "@/components/section-heading";
 import { useLanguage } from "@/components/language-provider";
 import { ChatPreview } from "./chat-preview";
 import { ThreePreview } from "./three-preview";
+import { ReplyPreview } from "./reply-preview";
 import {
   AvailabilityDemo,
   BeforeAfterDemo,
@@ -211,6 +212,16 @@ export function UpgradesContent() {
                   </a>
                 </div>
               </div>
+            </article>
+
+            <article className="upgrade-card upgrade-card-wide">
+              <p className="eyebrow">{t("From inquiry to first reply", "De la consulta a la primera respuesta")}</p>
+              <h3><Mail aria-hidden="true" /> {t("Replies that do a little homework", "Respuestas que investigan un poco")}</h3>
+              <p>{t(
+                "A customer explains what they need. The system checks relevant public information, drafts a useful first reply, and gives the owner a short briefing. Try a smaller version below.",
+                "El cliente explica lo que necesita. El sistema consulta información pública relevante, prepara una respuesta útil y un resumen para el dueño. Prueba una versión breve aquí.",
+              )}</p>
+              <div className="reply-preview-stage"><ReplyPreview /></div>
             </article>
 
             <article className="upgrade-card">
