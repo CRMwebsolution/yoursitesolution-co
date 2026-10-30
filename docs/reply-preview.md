@@ -1,6 +1,6 @@
 # Public research-and-reply preview
 
-The `/upgrades#reply-preview` card lets a visitor enter a sample website or automation inquiry, run a limited public lookup when applicable, and inspect a customer reply plus a short owner briefing. Example buttons fill the form; they never run a paid request automatically. No visitor email is collected and no email is sent.
+The `/upgrades#reply-preview` card lets a visitor enter a sample customer inquiry to a local business, run a limited public lookup when applicable, and inspect a customer reply plus a short owner briefing. Example buttons fill the form; they never run a paid request automatically. No visitor email is collected and no email is sent.
 
 This is a separate workflow from the live lead-response automation. The API never falls back to `N8N_LEAD_WEBHOOK`. Importable workflow: [`workflows/reply-preview.json`](./workflows/reply-preview.json).
 
@@ -9,7 +9,7 @@ This is a separate workflow from the live lead-response automation. The API neve
 - Fixed server/workflow model: `gpt-6-luna`. Visitors cannot choose models, destinations, or token budgets.
 - One short planning call; at most one web-search tool call; one short structured draft.
 - Three customer paragraphs, a short owner summary, up to two sourced findings, and one next step. No full build brief, quote, or timeline.
-- Simple website inquiries can skip research. The page labels that honestly; it only says sources were checked when a completed search and traceable URLs exist.
+- Routine service inquiries such as mowing can skip research. The page labels that honestly; it only says sources were checked when a completed search and traceable URLs exist.
 - Research errors return an unavailable result. The preview does not masquerade a fallback acknowledgment as successful research.
 
 OpenAI's model documentation lists GPT-6 Luna at $0.10 input / $0.50 output per million tokens, compared with the original workflow's GPT-4.1 mini rates of $0.40 / $1.60. The web-search call still carries its own fee (published at $0.01/call), plus search-content/model tokens. One search-call limit is not a hard total-dollar cap. Account access and actual delivery need a live test.
@@ -26,7 +26,7 @@ Official references: [GPT-6 Luna](https://developers.openai.com/api/docs/models/
    - `N8N_REPLY_PREVIEW_WEBHOOK`: the new workflow's Production Webhook URL.
    - `N8N_REPLY_PREVIEW_TOKEN`: the same random token, without the `Bearer ` prefix.
 6. Redeploy the website so the new values take effect. Add the values to Preview environments too if testing a Vercel branch deployment.
-7. On `/upgrades#reply-preview`, choose **Equipment maintenance**, click **Preview the reply**, and verify the real n8n execution: plan → one public lookup → short draft → JSON response. Verify that the page shows the returned paragraphs, owner summary, and real source links. Try **A new website** to check the no-lookup path. Confirm that no emails are sent.
+7. On `/upgrades#reply-preview`, choose **Auto repair**, click **Preview the reply**, and verify the real n8n execution: plan → one public lookup → short draft → JSON response. Verify that the page shows the returned paragraphs, owner summary, and real source links. Try **Lawn care** to check the no-lookup path. Confirm that no emails are sent.
 
 The workflow starts inactive and has no saved credentials. Missing website configuration returns a clear unavailable message instead of a fake example or a call to the live lead workflow.
 
@@ -86,3 +86,9 @@ Run `node scripts/test-reply-preview.cjs` for the offline contract, n8n-node beh
 3. “You could be getting these.” — picture of an actionable researched briefing.
 
 The stronger future demonstration includes “you currently have this in inventory; you would need to order these parts.” That requires a verified connection to the business's actual inventory and parts catalog. Public web research alone cannot establish stock or required parts. This is recorded for a future ad, not implemented or advertised as part of the current preview. Capture genuine, sanitized results after that integration exists.
+
+## Customer and owner views
+
+Examples represent a customer contacting an auto repair shop, equipment rental company, or lawn care business. The optional business field names the receiving business; the AI replies in that business's voice. The customer sees a service reply. The owner sees the customer summary, sourced public findings, and follow-up checks. Both views appear on the public demo to show what the automation does.
+
+A connected production system can add appointment openings, equipment/parts in stock, and parts to order to the owner-only briefing. This demo does not have live schedule or inventory data and cannot confirm availability or purchasing requirements. Those internal checks must not appear as customer-facing stock counts, purchasing lists, or internal workflow notes.
