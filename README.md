@@ -66,6 +66,11 @@ be returned as non-JSON text and cannot be decoded by the site.
 
 ## Content configuration
 
+The Upgrades page includes a live research-and-reply preview. Its separate n8n
+workflow, private environment variables, response contract, and activation steps
+are documented in [`docs/reply-preview.md`](docs/reply-preview.md). This preview
+does not send emails or reuse the production lead webhook.
+
 Public business details, pricing, automation examples, and portfolio publishing
 live in `config/site.ts`. Portfolio entries stay out of the navigation and sitemap
 until their `published` property is set to `true`.
