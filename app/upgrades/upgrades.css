@@ -39,9 +39,9 @@
 .reply-preview-examples button { border: 1px solid #b9c6bb; padding: .5rem .7rem; font: inherit; font-size: .8rem; color: inherit; background: #f1f5ed; cursor: pointer; }
 .reply-preview-examples button:hover { background: #e3ecdc; }
 .reply-preview-form label { font-size: .86rem; font-weight: 650; }
-.reply-preview-form input, .reply-preview-form textarea { min-width: 0; width: 100%; border: 1px solid #adb7ad; border-radius: 0; padding: .8rem; font: inherit; color: #17241e; background: #fff; }
+.reply-preview-form input, .reply-preview-form textarea, .reply-preview-form select { min-width: 0; width: 100%; border: 1px solid #adb7ad; border-radius: 0; padding: .8rem; font: inherit; color: #17241e; background: #fff; }
 .reply-preview-form textarea { line-height: 1.6; resize: vertical; min-height: 8rem; }
-.reply-preview :is(button,input,textarea,a):focus-visible { outline: 3px solid #c45c26; outline-offset: 3px; }
+.reply-preview :is(button,input,textarea,select,a):focus-visible { outline: 3px solid #c45c26; outline-offset: 3px; }
 .reply-preview-form fieldset:disabled { opacity: .7; }
 .reply-preview-form button:disabled { cursor: wait; }
 .reply-preview-submit { display: flex; align-items: center; justify-content: space-between; gap: 1.1rem; margin-top: .25rem; }
@@ -501,3 +501,5 @@
   gap: 0.6rem;
   padding: 1rem;
 }
+
+.reply-preview-demo-note { font-size: .8rem; line-height: 1.6; padding: .7rem .8rem; background: #f1f5ed; border-left: 3px solid #315f47; }

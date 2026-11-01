@@ -218,8 +218,8 @@ export function UpgradesContent() {
               <p className="eyebrow">{t("From inquiry to first reply", "De la consulta a la primera respuesta")}</p>
               <h3><Mail aria-hidden="true" /> {t("Replies that do a little homework", "Respuestas que investigan un poco")}</h3>
               <p>{t(
-                "A customer asks your business about a job, rental, or service. The system researches relevant details, drafts a reply in your business’s voice, and sends you a private briefing. Connect your schedule and inventory to add availability, stock, and parts-to-order checks to your owner notes.",
-                "Un cliente pregunta a tu negocio por un trabajo, alquiler o servicio. El sistema investiga lo necesario, redacta una respuesta con el estilo de tu negocio y te envía un informe privado. Conecta tu agenda e inventario para agregar disponibilidad, existencias y piezas por pedir a tus notas.",
+                "A customer asks your business about a job, rental, or service. The system researches relevant details, drafts a reply in your business’s voice, and sends you a private briefing. Connect your schedule and inventory so customers get useful, tentative suggestions while you receive availability, stock, and parts-to-order notes.",
+                "Un cliente pregunta a tu negocio por un trabajo, alquiler o servicio. El sistema investiga lo necesario, redacta una respuesta con el estilo de tu negocio y te envía un informe privado. Conecta tu agenda e inventario para dar sugerencias útiles y provisionales al cliente mientras recibes notas de disponibilidad, existencias y piezas por pedir.",
               )}</p>
               <div className="reply-preview-stage"><ReplyPreview /></div>
             </article>
