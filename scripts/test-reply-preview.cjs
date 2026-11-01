@@ -29,7 +29,7 @@ const sample = {
 };
 const envelope = { ok: true, version: 1, preview: sample };
 check(() => assert(contract.parseReplyPreviewInput(input)));
-for (const bad of [null, [], { message: 'short' }, { message: 'x'.repeat(1601) }, { ...input, business: 123 }, { ...input, language: 'xx' }]) {
+for (const bad of [null, [], { message: 'short' }, { message: 'x'.repeat(1601) }, { ...input, business: 123 }, { ...input, language: 'xx' }, { ...input, scenario: 'unknown' }, { ...input, scenario: '__proto__' }, { ...input, scenario: {} }]) {
   check(() => assert.equal(contract.parseReplyPreviewInput(bad), null));
 }
 check(() => assert(contract.normalizeReplyPreview(envelope)));
@@ -66,6 +66,25 @@ function response(text, extra = []) {
 run('Validate and Plan');
 check(() => assert(results['Validate and Plan'].valid));
 check(() => assert.equal(results['Validate and Plan'].plan_request.model, 'gpt-6-luna'));
+// Demo records come from the scenario whitelist, never caller-written context.
+check(() => assert.equal(contract.parseReplyPreviewInput(input).scenario, 'general'));
+for (const scenario of Object.keys(contract.REPLY_PREVIEW_DEMO_CONTEXT)) {
+  results['Preview Webhook'].body = { ...input, tool: 'reply-preview', version: 1, scenario,
+    demo_context: { schedule: { provisional_openings: ['Guaranteed Friday'] } }, inventory: ['fake stock'] };
+  const selected = run('Validate and Plan');
+  check(() => assert.equal(selected.valid, true));
+  check(() => assert.equal(JSON.stringify(selected.demo_context), JSON.stringify(contract.REPLY_PREVIEW_DEMO_CONTEXT[scenario])));
+  const draft = run('Prepare Short Draft', { ...selected, research: { status: 'not_needed', report: '', sources: [] } });
+  const sent = JSON.parse(draft.draft_request.input);
+  check(() => assert.equal(JSON.stringify(sent.demo_business_context), JSON.stringify(contract.REPLY_PREVIEW_DEMO_CONTEXT[scenario])));
+  check(() => assert(!draft.draft_request.input.includes('Guaranteed Friday') && !draft.draft_request.input.includes('fake stock')));
+  check(() => assert(!selected.plan_request.input.includes('provisional_openings')));
+}
+results['Preview Webhook'].body = { ...input, tool: 'reply-preview', version: 1, scenario: 'not-real' };
+check(() => assert.equal(run('Validate and Plan').valid, false));
+results['Preview Webhook'].body = { ...input, tool: 'reply-preview', version: 1 };
+run('Validate and Plan');
+
 run('Read Preview Plan', response({ needs_research: true, query: 'Optimus GPS API mileage data access' }));
 run('Prepare One Lookup', results['Read Preview Plan']);
 check(() => assert.equal(results['Prepare One Lookup'].research_request.max_tool_calls, 1));
@@ -110,10 +129,11 @@ function route(fetch, env = { N8N_REPLY_PREVIEW_WEBHOOK: 'https://n8n.example.co
     check(() => assert.equal(options.headers.authorization, 'Bearer test-token'));
     const payload = JSON.parse(options.body);
     check(() => assert.equal(payload.tool, 'reply-preview'));
-    check(() => assert(!('model' in payload) && !('email' in payload)));
+    check(() => assert(!('model' in payload) && !('email' in payload) && !('demo_context' in payload)));
+    check(() => assert.equal(payload.scenario, 'general'));
     return Response.json(envelope);
   });
-  let result = await api.POST(request({ ...input, model: 'expensive-model', email: 'private@example.com' }));
+  let result = await api.POST(request({ ...input, model: 'expensive-model', email: 'private@example.com', demo_context: { schedule: 'fake' } }));
   check(() => assert.equal(result.status, 200));
   await checkAsync(async () => assert(!JSON.stringify(await result.json()).includes('test-token')));
   result = await api.POST(request(input));

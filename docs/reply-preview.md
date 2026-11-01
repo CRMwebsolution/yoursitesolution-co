@@ -89,6 +89,17 @@ The stronger future demonstration includes “you currently have this in invento
 
 ## Customer and owner views
 
-Examples represent a customer contacting an auto repair shop, equipment rental company, or lawn care business. The optional business field names the receiving business; the AI replies in that business's voice. The customer sees a service reply. The owner sees the customer summary, sourced public findings, and follow-up checks. Both views appear on the public demo to show what the automation does.
+Examples represent a customer contacting an auto repair shop, equipment rental company, or lawn care business. The optional business field names the receiving business; the AI replies in that business's voice. The scenario ID selects trusted sample records. The customer sees a service reply. The owner sees the customer summary, sourced public findings, and follow-up checks. Both views appear on the public demo to show what the automation does.
 
-A connected production system can add appointment openings, equipment/parts in stock, and parts to order to the owner-only briefing. This demo does not have live schedule or inventory data and cannot confirm availability or purchasing requirements. Those internal checks must not appear as customer-facing stock counts, purchasing lists, or internal workflow notes.
+A connected production system can add appointment openings, equipment/parts in stock, and parts to order to the owner-only briefing. The demo uses explicitly labelled sample schedule and inventory data. Customers may receive tentative useful suggestions from those records; private stock counts, purchasing lists, and internal workflow notes remain in the owner view. Actual availability or purchasing requirements are not confirmed.
+
+## Sample business records and tentative replies
+
+The visitor selects a whitelisted scenario: `auto_repair`, `equipment_rental`, `lawn_care`, or `general` (default for older requests). The workflow maps this ID to fixed, trusted demo records; arbitrary submitted context, inventory, schedules, or policies are ignored. No data source is actually connected.
+
+- Auto repair: provisional opening Tuesday after lunch. Parts and fitment remain unknown.
+- Equipment rental: mini excavator width 38 inches. Rental dates and delivery remain unknown.
+- Lawn care: weekly Monday morning or every-other-week Thursday afternoon; these are the sample recurring-service options.
+- General: no schedule, inventory, or policies supplied.
+
+The UI labels all records as sample data. Customer replies may suggest a useful option from those records but use “It looks like…” and a confirmation follow-up such …97 tokens truncated…ode nodes in the existing preview workflow before deploying the website. The existing dedicated credentials and webhook URL do not change.

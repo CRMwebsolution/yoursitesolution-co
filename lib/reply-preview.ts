@@ -1,4 +1,64 @@
+export const REPLY_PREVIEW_DEMO_CONTEXT = {
+  "general": {
+    "sample_data": true,
+    "business_type": "General local business",
+    "schedule": null,
+    "inventory": null,
+    "policy": null
+  },
+  "auto_repair": {
+    "sample_data": true,
+    "business_type": "Auto repair shop",
+    "schedule": {
+      "provisional_openings": [
+        "Tuesday after lunch"
+      ]
+    },
+    "inventory": null,
+    "policy": null
+  },
+  "equipment_rental": {
+    "sample_data": true,
+    "business_type": "Equipment rental company",
+    "schedule": null,
+    "inventory": [
+      {
+        "equipment": "Mini excavator",
+        "width_inches": 38
+      }
+    ],
+    "policy": null,
+    "delivery_availability": null
+  },
+  "lawn_care": {
+    "sample_data": true,
+    "business_type": "Lawn care company",
+    "schedule": {
+      "provisional_recurring_openings": [
+        {
+          "frequency": "weekly",
+          "slot": "Monday morning"
+        },
+        {
+          "frequency": "every other week",
+          "slot": "Thursday afternoon"
+        }
+      ]
+    },
+    "inventory": null,
+    "policy": {
+      "recurring_service_options": [
+        "weekly",
+        "every other week"
+      ]
+    }
+  }
+} as const;
+
+export type ReplyPreviewScenario = keyof typeof REPLY_PREVIEW_DEMO_CONTEXT;
+
 export type ReplyPreviewInput = {
+  scenario: ReplyPreviewScenario;
   business: string;
   message: string;
   language: "en" | "es";
@@ -29,7 +89,9 @@ export function parseReplyPreviewInput(value: unknown): ReplyPreviewInput | null
   const business = typeof body.business === "string" ? body.business.trim() : "";
   if (business.length > 100) return null;
   if (body.language !== undefined && body.language !== "en" && body.language !== "es") return null;
-  return { business, message, language: body.language === "es" ? "es" : "en" };
+  const scenario = body.scenario === undefined ? "general" : body.scenario;
+  if (typeof scenario !== "string" || !Object.prototype.hasOwnProperty.call(REPLY_PREVIEW_DEMO_CONTEXT, scenario)) return null;
+  return { scenario: scenario as ReplyPreviewScenario, business, message, language: body.language === "es" ? "es" : "en" };
 }
 
 function shortText(value: unknown, max: number): value is string {
