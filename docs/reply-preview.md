@@ -1,10 +1,16 @@
 # Public research-and-reply preview
 
-The `/upgrades#reply-preview` card lets a visitor enter a sample customer inquiry to a local business, run a limited public lookup when applicable, and inspect a customer reply plus a short owner briefing. Example buttons fill the form; they never run a paid request automatically. No visitor email is collected and no email is sent.
+The `/upgrades#reply-preview` card offers prepared auto-repair, plumber, and lawn-care examples alongside the existing live custom-question flow. Prepared messages and both email views are hard-coded in `lib/reply-presets.ts`, run immediately in the browser, and make no API request. No visitor email is collected and no email is sent.
+
+The plumber example includes an unchecked **Linked to inventory** checkbox. Checking it adds a fixed sample note only to the owner summary: “Current inventory shows the only part that needs to be ordered for this job is the water heater. Confirm before replying.” Unchecking it removes that note; the customer reply is identical either way. English and Spanish presets are included.
+
+A prepared result requires the selected preset's exact message and business name in the current language (ignoring surrounding whitespace). Editing either field uses the existing live API instead. Auto-repair and lawn-care custom questions retain their existing workflow scenarios; custom plumber questions use the existing general-business scenario. The inventory checkbox applies only to the prepared plumber example. The API route, live n8n workflow, authentication, and custom-question limits are unchanged. Presets do not consume the custom-question limit. Results are labelled as prepared examples, without suggesting that public sources were checked.
+
+The shop dashboard card is temporarily hidden behind `SHOW_SHOP_DESK` in `app/upgrades/upgrades-content.tsx` pending a fix to profile creation. Its implementation is retained for restoration.
 
 This is a separate workflow from the live lead-response automation. The API never falls back to `N8N_LEAD_WEBHOOK`. Importable workflow: [`workflows/reply-preview.json`](./workflows/reply-preview.json).
 
-## Scope and model
+## Live custom-question scope and model
 
 - Fixed server/workflow model: `gpt-6-luna`. Visitors cannot choose models, destinations, or token budgets.
 - One short planning call; at most one web-search tool call; one short structured draft.
@@ -89,7 +95,7 @@ The stronger future demonstration includes “you currently have this in invento
 
 ## Customer and owner views
 
-Examples represent a customer contacting an auto repair shop, equipment rental company, or lawn care business. The optional business field names the receiving business; the AI replies in that business's voice. The scenario ID selects trusted sample records. The customer sees a service reply. The owner sees the customer summary, sourced public findings, and follow-up checks. Both views appear on the public demo to show what the automation does.
+The visible presets represent a customer contacting an auto repair shop, plumber, or lawn care business. The existing live workflow retains its original scenario contract for custom requests. The optional business field names the receiving business; the AI replies in that business's voice. The scenario ID selects trusted sample records. The customer sees a service reply. The owner sees the customer summary, sourced public findings, and follow-up checks. Both views appear on the public demo to show what the automation does.
 
 A connected production system can add appointment openings, equipment/parts in stock, and parts to order to the owner-only briefing. The demo uses explicitly labelled sample schedule and inventory data. Customers may receive tentative useful suggestions from those records; private stock counts, purchasing lists, and internal workflow notes remain in the owner view. Actual availability or purchasing requirements are not confirmed.
 

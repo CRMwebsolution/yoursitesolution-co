@@ -21,6 +21,27 @@ function load(relative, imports = {}, extra = {}) {
   return module.exports;
 }
 const contract = load('lib/reply-preview.ts');
+const presets = load('lib/reply-presets.ts');
+for (const scenario of Object.keys(presets.REPLY_PRESETS)) for (const language of ['en', 'es']) {
+  const example = presets.REPLY_PRESETS[scenario][language];
+  const input = { scenario, language, business: example.business, message: example.message };
+  check(() => assert.equal(presets.findReplyPreset(input), scenario));
+  check(() => assert.equal(presets.findReplyPreset({ ...input, message: `${example.message} A custom question.` }), null));
+  check(() => assert.equal(presets.findReplyPreset({ ...input, business: 'Another business' }), null));
+  const plain = presets.getReplyPreset(scenario, language, false);
+  const linked = presets.getReplyPreset(scenario, language, true);
+  check(() => assert(contract.normalizeReplyPreview({ ok: true, version: 1, preview: linked })));
+  check(() => assert.deepEqual(plain.customer_reply, linked.customer_reply));
+  check(() => assert.equal(linked.research.sources.length, 0));
+  if (scenario === 'plumber') {
+    const note = language === 'en' ? 'Confirm before replying.' : 'Confírmalo antes de responder.';
+    check(() => assert(linked.owner_summary.includes(note)));
+    check(() => assert(!plain.owner_summary.includes(note)));
+    check(() => assert(!linked.customer_reply.join(' ').includes(note)));
+  } else check(() => assert.deepEqual(plain, linked));
+}
+check(() => assert.equal(presets.findReplyPreset({ scenario: '__proto__', business: '', message: '', language: 'en' }), null));
+check(() => assert.equal(presets.findReplyPreset({ scenario: 'general', business: '', message: '', language: 'en' }), null));
 const input = { business: 'Example Rentals', message: 'I need maintenance reminders based on Optimus GPS mileage.', language: 'en' };
 const sample = {
   customer_reply: ['Thanks for your request.', 'Mileage availability needs to be confirmed.', 'Which tracker model do you use?'],
