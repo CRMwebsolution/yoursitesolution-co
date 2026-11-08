@@ -24,6 +24,8 @@ import {
   WorkOrderDemo,
 } from "./upgrade-demos";
 
+// Temporarily hidden until shop-desk profile creation is working again.
+const SHOW_SHOP_DESK = false;
 const SHOP_DESK_URL = "https://admin.yoursitesolution.com";
 
 export function UpgradesContent() {
@@ -178,48 +180,50 @@ export function UpgradesContent() {
           />
 
           <div className="upgrade-showcase">
-            <article className="upgrade-card upgrade-card-wide">
-              <p className="eyebrow">{t("Shop desk", "Escritorio del taller")}</p>
-              <h3>
-                <LayoutDashboard aria-hidden="true" /> {t("Admin dashboard", "Panel de administración")}
-              </h3>
-              <p>
-                {t(
-                  "A taste of a business-facing desk. Create an account, pick calendar, customers, files, and gallery, then add your own rows. This is a demo, not a finished system and not part of the $300 or $750 websites.",
-                  "Una muestra de un escritorio para el negocio. Crea una cuenta, elige calendario, clientes, archivos y galería, y agrega tus propias filas. Es una demo, no un sistema terminado ni parte de los sitios de $300 o $750.",
-                )}
-              </p>
-              <div className="upgrade-stage desk-preview">
-                <p className="demo-kicker">{t("Shop dashboard demo", "Demo del escritorio")}</p>
-                <h4>{t("See what a shop desk can look like.", "Mira cómo puede verse el escritorio.")}</h4>
-                <p className="demo-note">
+            {SHOW_SHOP_DESK ? (
+              <article className="upgrade-card upgrade-card-wide">
+                <p className="eyebrow">{t("Shop desk", "Escritorio del taller")}</p>
+                <h3>
+                  <LayoutDashboard aria-hidden="true" /> {t("Admin dashboard", "Panel de administración")}
+                </h3>
+                <p>
                   {t(
-                    "Create an account. Pick the pieces you want. Add your own rows.",
-                    "Crea una cuenta. Elige las piezas. Agrega tus propias filas.",
+                    "A taste of a business-facing desk. Create an account, pick calendar, customers, files, and gallery, then add your own rows. This is a demo, not a finished system and not part of the $300 or $750 websites.",
+                    "Una muestra de un escritorio para el negocio. Crea una cuenta, elige calendario, clientes, archivos y galería, y agrega tus propias filas. Es una demo, no un sistema terminado ni parte de los sitios de $300 o $750.",
                   )}
                 </p>
-                <ul className="desk-checks">
-                  <li>{t("Your login, your rows.", "Tu acceso, tus filas.")}</li>
-                  <li>{t("Calendar, customers, files, gallery.", "Calendario, clientes, archivos, galería.")}</li>
-                  <li>{t("Turn pieces on or off later.", "Enciende o apaga piezas después.")}</li>
-                </ul>
-                <div className="desk-actions">
-                  <a className="button" href={SHOP_DESK_URL} target="_blank" rel="noreferrer">
-                    {t("Open the shop desk", "Abrir el escritorio")} <ArrowRight aria-hidden="true" />
-                  </a>
-                  <a className="button button-ghost" href={`${SHOP_DESK_URL}/login`} target="_blank" rel="noreferrer">
-                    {t("Log in", "Entrar")}
-                  </a>
+                <div className="upgrade-stage desk-preview">
+                  <p className="demo-kicker">{t("Shop dashboard demo", "Demo del escritorio")}</p>
+                  <h4>{t("See what a shop desk can look like.", "Mira cómo puede verse el escritorio.")}</h4>
+                  <p className="demo-note">
+                    {t(
+                      "Create an account. Pick the pieces you want. Add your own rows.",
+                      "Crea una cuenta. Elige las piezas. Agrega tus propias filas.",
+                    )}
+                  </p>
+                  <ul className="desk-checks">
+                    <li>{t("Your login, your rows.", "Tu acceso, tus filas.")}</li>
+                    <li>{t("Calendar, customers, files, gallery.", "Calendario, clientes, archivos, galería.")}</li>
+                    <li>{t("Turn pieces on or off later.", "Enciende o apaga piezas después.")}</li>
+                  </ul>
+                  <div className="desk-actions">
+                    <a className="button" href={SHOP_DESK_URL} target="_blank" rel="noreferrer">
+                      {t("Open the shop desk", "Abrir el escritorio")} <ArrowRight aria-hidden="true" />
+                    </a>
+                    <a className="button button-ghost" href={`${SHOP_DESK_URL}/login`} target="_blank" rel="noreferrer">
+                      {t("Log in", "Entrar")}
+                    </a>
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            ) : null}
 
             <article className="upgrade-card upgrade-card-wide">
               <p className="eyebrow">{t("From inquiry to first reply", "De la consulta a la primera respuesta")}</p>
               <h3><Mail aria-hidden="true" /> {t("Replies that do a little homework", "Respuestas que investigan un poco")}</h3>
               <p>{t(
-                "A customer asks your business about a job, rental, or service. The system researches relevant details, drafts a reply in your business’s voice, and sends you a private briefing. Connect your schedule and inventory so customers get useful, tentative suggestions while you receive availability, stock, and parts-to-order notes.",
-                "Un cliente pregunta a tu negocio por un trabajo, alquiler o servicio. El sistema investiga lo necesario, redacta una respuesta con el estilo de tu negocio y te envía un informe privado. Conecta tu agenda e inventario para dar sugerencias útiles y provisionales al cliente mientras recibes notas de disponibilidad, existencias y piezas por pedir.",
+                "A customer asks your business about a job or service. The system researches relevant details, drafts a reply in your business’s voice, and sends you a private briefing. Connect your schedule and inventory so customers get useful, tentative suggestions while you receive availability, stock, and parts-to-order notes.",
+                "Un cliente pregunta a tu negocio por un trabajo o servicio. El sistema investiga lo necesario, redacta una respuesta con el estilo de tu negocio y te envía un informe privado. Conecta tu agenda e inventario para dar sugerencias útiles y provisionales al cliente mientras recibes notas de disponibilidad, existencias y piezas por pedir.",
               )}</p>
               <div className="reply-preview-stage"><ReplyPreview /></div>
             </article>
@@ -305,8 +309,8 @@ export function UpgradesContent() {
         eyebrow={t("Want one of these on a site?", "¿Quieres uno de estos en un sitio?")}
         title={t("Tell me what it should do.", "Dime qué tiene que hacer.")}
         text={t(
-          "A chatbot, a shop desk, a 3D product view, a booking flow, or something I have not listed. Plain English is enough.",
-          "Un chat, un escritorio, una vista 3D, reservas o algo que no esté en la lista. El español claro también sirve.",
+          "A chatbot, a 3D product view, a booking flow, or something I have not listed. Plain English is enough.",
+          "Un chat, una vista 3D, reservas o algo que no esté en la lista. El español claro también sirve.",
         )}
       />
     </main>

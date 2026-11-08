@@ -2140,13 +2140,22 @@ svg {
     width: min(100% - 30px, 1200px);
   }
 
-  .home-hero {
+  .home-hero,
+  .page-hero {
     min-height: auto;
-    padding-top: 4.5rem;
+    padding-block: 2.75rem;
+  }
+
+  .hero-layout,
+  .page-hero-grid {
+    gap: 1.75rem;
   }
 
   .hero-copy h1,
-  .page-hero h1,
+  .page-hero h1 {
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+  }
+
   .not-found h1 {
     font-size: clamp(3.15rem, 15vw, 5rem);
   }
@@ -2156,9 +2165,41 @@ svg {
     font-size: 1rem;
   }
 
+  .hero-lede,
+  .page-hero .lede {
+    margin-top: 1.15rem;
+    line-height: 1.55;
+  }
+
   .hero-actions {
     align-items: flex-start;
     flex-direction: column;
+    gap: 0.85rem;
+    margin-top: 1.4rem;
+  }
+
+  .hero-assurance {
+    margin-top: 1rem;
+  }
+
+  .page-hero-aside:has(> .workflow-mark) {
+    display: none;
+  }
+
+  .hero-aside-stack p {
+    padding: 0.85rem 1rem;
+  }
+
+  .hero-aside-stack strong {
+    font-size: 1.6rem;
+  }
+
+  .sheet-title {
+    padding: 1rem;
+  }
+
+  .sheet-specs div {
+    padding: 0.75rem 1rem;
   }
 
   .build-sheet {

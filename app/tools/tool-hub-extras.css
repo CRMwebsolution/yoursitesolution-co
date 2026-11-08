@@ -66,7 +66,31 @@
   .tool-page-hero h1,
   .audit-intro h1,
   .utility-intro h1 {
-    font-size: clamp(2.4rem, 11vw, 3.4rem);
+    font-size: clamp(2rem, 8vw, 2.75rem);
+  }
+
+  .utility-workbench,
+  .tool-workbench {
+    padding-block: 2.5rem;
+  }
+
+  .utility-intro,
+  .audit-launch {
+    gap: 1.25rem;
+  }
+
+  .utility-intro {
+    margin-bottom: 1.75rem;
+  }
+
+  .audit-intro {
+    padding-top: 0;
+  }
+
+  .utility-intro .lede,
+  .audit-intro .lede {
+    margin-top: 1rem;
+    line-height: 1.55;
   }
 
   .tool-more-button {
